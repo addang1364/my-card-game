@@ -31,6 +31,7 @@ const resultsMessageEl = document.getElementById("results-message");
 let playerHand = [];
 let hasPlayedThisRound = false;
 let gameActive = false;
+let returnLobbyTimer = null;
 
 function showScreen(name) {
   Object.entries(screens).forEach(([key, el]) => {
@@ -45,13 +46,38 @@ function setConnectionStatus(ok, message) {
   findMatchBtn.disabled = !ok;
 }
 
-function showLobby(statusText = "") {
+function resetToLobbyUI(statusText = "") {
+  if (returnLobbyTimer) {
+    clearTimeout(returnLobbyTimer);
+    returnLobbyTimer = null;
+  }
+
   gameActive = false;
   hasPlayedThisRound = false;
   playerHand = [];
+
+  updateScoreboard(0, 0, 1, false);
+  clearBattleArea();
+  messageEl.className = "message";
+  messageEl.textContent = "카드 한 장을 골라서 클릭하세요.";
+  opponentLabelEl.textContent = "상대";
+  resultsTitleEl.textContent = "게임 종료";
+  resultsMessageEl.textContent = "";
+  resultsMessageEl.className = "results-message";
+  handEl.innerHTML = "";
+
+  // 새로고침·href 없이 URL만 루트로 정리 (Render Not Found 방지)
+  if (window.location.pathname !== "/") {
+    window.history.replaceState(null, "", "/");
+  }
+
   showScreen("lobby");
   findMatchBtn.disabled = !socketConnected;
   lobbyStatusEl.textContent = statusText;
+}
+
+function showLobby(statusText = "") {
+  resetToLobbyUI(statusText);
 }
 
 function showSearching() {
@@ -153,7 +179,10 @@ function setupSocket() {
 
 socket.on("connect", () => {
   setConnectionStatus(true, "서버 연결됨 — Find match를 누르세요.");
-  showLobby();
+  const onResultsScreen = !screens.results.classList.contains("hidden");
+  if (!onResultsScreen && !gameActive) {
+    resetToLobbyUI();
+  }
 });
 
 socket.on("connect_error", () => {
@@ -165,9 +194,7 @@ socket.on("connect_error", () => {
 });
 
 socket.on("connected", () => {
-  if (socketConnected) {
-    showLobby();
-  }
+  // 화면 전환 없음 (게임 중 로비로 튕기는 것 방지)
 });
 
 socket.on("searching", () => {
@@ -252,14 +279,20 @@ socket.on("gameOver", ({ result, finalMessage, yourScore, opponentScore }) => {
   }
 
   showResults(title, finalMessage, resultClass);
+
+  if (returnLobbyTimer) clearTimeout(returnLobbyTimer);
+  returnLobbyTimer = setTimeout(() => {
+    returnLobbyTimer = null;
+    resetToLobbyUI("다시 매칭할 수 있습니다.");
+  }, 5000);
 });
 
 socket.on("returnToLobby", ({ message }) => {
-  showLobby(message);
+  resetToLobbyUI(message || "다시 매칭할 수 있습니다.");
 });
 
 socket.on("opponentLeft", ({ message }) => {
-  showLobby(message);
+  resetToLobbyUI(message || "상대가 나갔습니다. 매칭 화면으로 돌아갑니다.");
 });
 
   setConnectionStatus(false, "서버 연결 확인 중…");

@@ -24,8 +24,23 @@ const PORT = process.env.PORT || 3000;
 const TOTAL_ROUNDS = 10;
 const ALL_CARDS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 const RESULT_DELAY_MS = 5000;
+const PUBLIC_DIR = path.resolve(__dirname, "public");
 
-app.use(express.static(path.join(__dirname, "public")));
+app.use(express.static(PUBLIC_DIR, { index: "index.html" }));
+
+app.get("/", (req, res) => {
+  res.sendFile(path.join(PUBLIC_DIR, "index.html"));
+});
+
+// 새로고침·잘못된 경로 접근 시에도 SPA index 반환 (Not Found 방지)
+app.get("*", (req, res, next) => {
+  if (req.path.startsWith("/socket.io")) {
+    return next();
+  }
+  res.sendFile(path.join(PUBLIC_DIR, "index.html"), (err) => {
+    if (err) next(err);
+  });
+});
 
 const waitingQueue = [];
 const games = new Map();
