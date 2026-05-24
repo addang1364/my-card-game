@@ -1,0 +1,77 @@
+---
+pid: 24188
+cwd: |
+  C:\Users\round
+---
+PS C:\Users\round> cd "C:\Users\round\.cursor\projects\empty-window"
+PS C:\Users\round\.cursor\projects\empty-window> npm.cmd start
+
+> number-card-game@1.0.0 start
+> node server.js
+
+
+  숫자 카드 게임 서버가 켜졌습니다!
+  브라우저에서 아래 주소를 열어주세요:
+
+  http://localhost:3000
+
+  종료하려면 이 터미널에서 Ctrl + C 를 누르세요.
+
+일괄 작업을 끝내시겠습니까 (Y/N)? y
+PS C:\Users\round\.cursor\projects\empty-window> C:\Users\round\.cursor\projects\empty-window\install-and-start.bat
+
+[1/2] ?꾩슂???⑦궎吏 ?ㅼ튂 以?..
+
+added 22 packages, and audited 91 packages in 5s
+
+16 packages are looking for funding
+  run `npm fund` for details
+
+found 0 vulnerabilities
+
+[2/2] 寃뚯엫 ?쒕쾭 ?쒖옉...
+釉뚮씪?곗??먯꽌 http://localhost:3000 ???ъ꽭??
+醫낅즺?섎젮硫?Ctrl+C
+
+
+> number-card-game@1.0.0 start
+> node server.js
+
+
+  숫자 카드 게임 서버가 켜졌습니다!
+
+  이 컴퓨터:     http://localhost:3000
+  같은 Wi-Fi 친구: http://25.41.19.106:3000
+
+  종료: Ctrl + C
+
+일괄 작업을 끝내시겠습니까 (Y/N)?
+^C시스템이 지정된 장치나 파일을 열 수 없습니다.
+일괄 작업을 끝내시겠습니까 (Y/N)? y
+PS C:\Users\round\.cursor\projects\empty-window> ^C
+PS C:\Users\round\.cursor\projects\empty-window> cd "C:\Users\round\.cursor\projects\empty-window"
+>> npm.cmd install
+>> npm.cmd start
+
+up to date, audited 91 packages in 2s
+
+16 packages are looking for funding
+  run `npm fund` for details
+
+found 0 vulnerabilities
+
+> number-card-game@1.0.0 start
+> node server.js
+
+
+  숫자 카드 게임 서버가 켜졌습니다!
+
+  이 컴퓨터:     http://localhost:3000
+  같은 Wi-Fi 친구: http://25.41.19.106:3000
+
+  종료: Ctrl + C
+
+
+ *  History restored 
+
+PS C:\Users\round> 

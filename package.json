@@ -1,0 +1,13 @@
+{
+  "name": "number-card-game",
+  "version": "1.0.0",
+  "description": "숫자 카드 내기 게임 (PVP 매칭)",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.21.2",
+    "socket.io": "^4.8.1"
+  }
+}

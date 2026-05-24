@@ -1,0 +1,7 @@
+---
+pid: 10480
+cwd: |
+  C:\Users\round
+---
+PS C:\Users\round> cd "C:\Users\round\.cursor\projects\empty-window"
+PS C:\Users\round\.cursor\projects\empty-window> 

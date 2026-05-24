@@ -1,0 +1,55 @@
+---
+pid: 2128
+cwd: |
+  C:\Users\round
+---
+PS C:\Users\round> node -v
+v22.14.0
+PS C:\Users\round> npm -v
+npm : 이 시스템에서 스크립트를 실행할 수 없으므로 C:\Program Files\nodejs\npm.ps1 
+파일을 로드할 수 없습니다. 자세한 내용은 about_Execution_Policies(https://go.micros
+oft.com/fwlink/?LinkID=135170)를 참조하십시오.
+위치 줄:1 문자:1
++ npm -v
++ ~~~
+    + CategoryInfo          : 보안 오류: (:) [], PSSecurityException
+    + FullyQualifiedErrorId : UnauthorizedAccess
+PS C:\Users\round> npm.cmd -v
+10.9.2
+PS C:\Users\round> cd "C:\Users\round\.cursor\projects\empty-window"
+PS C:\Users\round\.cursor\projects\empty-window> npm.cmd install
+
+added 68 packages, and audited 69 packages in 5s
+
+15 packages are looking for funding
+  run `npm fund` for details
+
+found 0 vulnerabilities
+npm notice
+npm notice New major version of npm available! 10.9.2 -> 11.15.0
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v11.15.0
+npm notice To update run: npm install -g npm@11.15.0
+npm notice
+PS C:\Users\round\.cursor\projects\empty-window> npm.cmd start
+
+> number-card-game@1.0.0 start
+> node server.js
+
+
+  숫자 카드 게임 서버가 켜졌습니다!
+  브라우저에서 아래 주소를 열어주세요:
+
+  http://localhost:3000
+
+  종료하려면 이 터미널에서 Ctrl + C 를 누르세요.
+
+
+ *  History restored 
+
+PS C:\Users\round> 
+ *  History restored 
+
+PS C:\Users\round> 
+ *  History restored 
+
+PS C:\Users\round> 

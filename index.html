@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>숫자 카드 내기 - 단일 파일 버전</title>
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        font-family: "Segoe UI", "Malgun Gothic", sans-serif;
+        background: linear-gradient(160deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+        min-height: 100vh;
+        color: #eee;
+        padding: 24px 16px;
+      }
+
+      .app {
+        max-width: 640px;
+        margin: 0 auto;
+      }
+
+      header {
+        text-align: center;
+        margin-bottom: 24px;
+      }
+
+      header h1 {
+        font-size: 1.75rem;
+        font-weight: 700;
+      }
+
+      .subtitle {
+        margin-top: 8px;
+        color: #a8b8d8;
+        font-size: 0.95rem;
+      }
+
+      .scoreboard {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 28px;
+      }
+
+      .score-box {
+        flex: 1;
+        background: rgba(255, 255, 255, 0.08);
+        border-radius: 12px;
+        padding: 14px;
+        text-align: center;
+        border: 2px solid transparent;
+      }
+
+      .score-box.you {
+        border-color: #4ecca3;
+      }
+
+      .score-box.bot {
+        border-color: #e94560;
+      }
+
+      .score-box .label {
+        display: block;
+        font-size: 0.85rem;
+        color: #aaa;
+        margin-bottom: 4px;
+      }
+
+      .score-box .score {
+        font-size: 2rem;
+        font-weight: 700;
+      }
+
+      .round-info {
+        font-size: 0.9rem;
+        color: #ccc;
+        white-space: nowrap;
+      }
+
+      .battle-area {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 16px;
+        margin-bottom: 20px;
+      }
+
+      .played-card {
+        flex: 1;
+        text-align: center;
+      }
+
+      .slot-label {
+        font-size: 0.8rem;
+        color: #999;
+        margin-bottom: 8px;
+      }
+
+      .card-display {
+        width: 72px;
+        height: 96px;
+        margin: 0 auto;
+        background: #fff;
+        color: #1a1a2e;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2.25rem;
+        font-weight: 800;
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
+      }
+
+      .card-display.empty {
+        background: rgba(255, 255, 255, 0.1);
+        color: #666;
+        font-size: 1.5rem;
+      }
+
+      .vs {
+        font-weight: 700;
+        color: #e94560;
+        font-size: 1.1rem;
+      }
+
+      .message {
+        text-align: center;
+        min-height: 2.5em;
+        margin-bottom: 24px;
+        font-size: 1.05rem;
+        line-height: 1.5;
+        color: #f0f0f0;
+      }
+
+      .message.win {
+        color: #4ecca3;
+      }
+
+      .message.lose {
+        color: #ff6b6b;
+      }
+
+      .message.draw {
+        color: #ffd93d;
+      }
+
+      .hand-section h2 {
+        font-size: 1rem;
+        margin-bottom: 12px;
+        color: #bbb;
+        font-weight: 600;
+      }
+
+      .hand {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        justify-content: center;
+      }
+
+      .card-btn {
+        width: 56px;
+        height: 76px;
+        border: none;
+        border-radius: 10px;
+        background: linear-gradient(145deg, #fff 0%, #e8e8e8 100%);
+        color: #1a1a2e;
+        font-size: 1.5rem;
+        font-weight: 800;
+        cursor: pointer;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+        transition: transform 0.15s, box-shadow 0.15s;
+      }
+
+      .card-btn:hover:not(:disabled) {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 20px rgba(78, 204, 163, 0.4);
+      }
+
+      .card-btn:disabled {
+        opacity: 0.35;
+        cursor: not-allowed;
+        transform: none;
+      }
+
+      .restart-btn {
+        display: block;
+        width: 100%;
+        margin-top: 20px;
+        padding: 14px;
+        font-size: 1.1rem;
+        font-weight: 600;
+        border: none;
+        border-radius: 10px;
+        background: #4ecca3;
+        color: #1a1a2e;
+        cursor: pointer;
+      }
+
+      .restart-btn:hover {
+        background: #3db892;
+      }
+
+      .hidden {
+        display: none !important;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app">
+      <header>
+        <h1>숫자 카드 내기</h1>
+        <p class="subtitle">단일 파일 버전 (AI 봇 대전)</p>
+      </header>
+
+      <section class="scoreboard">
+        <div class="score-box you">
+          <span class="label">나</span>
+          <span id="player-score" class="score">0</span>
+        </div>
+        <div class="round-info">
+          <span id="round-label">1 / 10 턴</span>
+        </div>
+        <div class="score-box bot">
+          <span class="label">AI 봇</span>
+          <span id="bot-score" class="score">0</span>
+        </div>
+      </section>
+
+      <section class="battle-area">
+        <div class="played-card slot you">
+          <p class="slot-label">내가 낸 카드</p>
+          <div id="player-played" class="card-display empty">—</div>
+        </div>
+        <div class="vs">VS</div>
+        <div class="played-card slot bot">
+          <p class="slot-label">봇이 낸 카드</p>
+          <div id="bot-played" class="card-display empty">—</div>
+        </div>
+      </section>
+
+      <p id="message" class="message">카드 한 장을 골라서 클릭하세요.</p>
+
+      <section class="hand-section">
+        <h2>내 손패 (1~10, 각 1장씩)</h2>
+        <div id="player-hand" class="hand"></div>
+      </section>
+
+      <button id="restart-btn" class="restart-btn hidden" type="button">다시 하기</button>
+    </div>
+
+    <script>
+      const TOTAL_ROUNDS = 10;
+      const ALL_CARDS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+
+      let playerHand = [];
+      let botHand = [];
+      let playerScore = 0;
+      let botScore = 0;
+      let currentRound = 1;
+      let gameOver = false;
+
+      const playerScoreEl = document.getElementById("player-score");
+      const botScoreEl = document.getElementById("bot-score");
+      const roundLabelEl = document.getElementById("round-label");
+      const playerPlayedEl = document.getElementById("player-played");
+      const botPlayedEl = document.getElementById("bot-played");
+      const messageEl = document.getElementById("message");
+      const handEl = document.getElementById("player-hand");
+      const restartBtn = document.getElementById("restart-btn");
+
+      function startGame() {
+        playerHand = [...ALL_CARDS];
+        botHand = [...ALL_CARDS];
+        playerScore = 0;
+        botScore = 0;
+        currentRound = 1;
+        gameOver = false;
+
+        updateScoreboard();
+        clearBattleArea();
+        messageEl.className = "message";
+        messageEl.textContent = "카드 한 장을 골라서 클릭하세요.";
+        restartBtn.classList.add("hidden");
+        renderHand();
+      }
+
+      function updateScoreboard() {
+        playerScoreEl.textContent = playerScore;
+        botScoreEl.textContent = botScore;
+        roundLabelEl.textContent = gameOver ? "게임 종료" : `${currentRound} / ${TOTAL_ROUNDS} 턴`;
+      }
+
+      function clearBattleArea() {
+        playerPlayedEl.textContent = "—";
+        playerPlayedEl.classList.add("empty");
+        botPlayedEl.textContent = "—";
+        botPlayedEl.classList.add("empty");
+      }
+
+      function renderHand() {
+        handEl.innerHTML = "";
+
+        playerHand.forEach((card) => {
+          const btn = document.createElement("button");
+          btn.type = "button";
+          btn.className = "card-btn";
+          btn.textContent = card;
+          btn.addEventListener("click", () => playTurn(card));
+          handEl.appendChild(btn);
+        });
+      }
+
+      function pickRandomCard(hand) {
+        const index = Math.floor(Math.random() * hand.length);
+        return hand[index];
+      }
+
+      function playTurn(playerCard) {
+        if (gameOver) return;
+
+        const playerIndex = playerHand.indexOf(playerCard);
+        if (playerIndex === -1) return;
+        playerHand.splice(playerIndex, 1);
+
+        const botCard = pickRandomCard(botHand);
+        const botIndex = botHand.indexOf(botCard);
+        botHand.splice(botIndex, 1);
+
+        playerPlayedEl.textContent = playerCard;
+        playerPlayedEl.classList.remove("empty");
+        botPlayedEl.textContent = botCard;
+        botPlayedEl.classList.remove("empty");
+
+        let roundMessage = "";
+        messageEl.className = "message";
+
+        if (playerCard > botCard) {
+          playerScore += 1;
+          roundMessage = `이번 턴 승리! (나 ${playerCard} > 봇 ${botCard})`;
+          messageEl.classList.add("win");
+        } else if (playerCard < botCard) {
+          botScore += 1;
+          roundMessage = `이번 턴 패배... (나 ${playerCard} < 봇 ${botCard})`;
+          messageEl.classList.add("lose");
+        } else {
+          roundMessage = `무승부! (둘 다 ${playerCard})`;
+          messageEl.classList.add("draw");
+        }
+
+        updateScoreboard();
+        renderHand();
+
+        if (currentRound >= TOTAL_ROUNDS) {
+          endGame(roundMessage);
+        } else {
+          messageEl.textContent = roundMessage + " - 다음 카드를 고르세요.";
+          currentRound += 1;
+          updateScoreboard();
+        }
+      }
+
+      function endGame(lastRoundMessage) {
+        gameOver = true;
+        updateScoreboard();
+        handEl.innerHTML = "";
+        restartBtn.classList.remove("hidden");
+
+        let finalMessage = lastRoundMessage + " ";
+
+        if (playerScore > botScore) {
+          finalMessage += `최종 승리! (${playerScore} : ${botScore})`;
+          messageEl.className = "message win";
+        } else if (playerScore < botScore) {
+          finalMessage += `최종 패배... (${playerScore} : ${botScore})`;
+          messageEl.className = "message lose";
+        } else {
+          finalMessage += `최종 무승부! (${playerScore} : ${botScore})`;
+          messageEl.className = "message draw";
+        }
+
+        messageEl.textContent = finalMessage;
+      }
+
+      restartBtn.addEventListener("click", startGame);
+      startGame();
+    </script>
+  </body>
+</html>
