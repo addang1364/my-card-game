@@ -1,5 +1,5 @@
 ---
-pid: 19688
+pid: 16728
 cwd: |
   C:\Users\round
 ---
@@ -31,6 +31,12 @@ git : 'git' 용어가 cmdlet, 함수, 스크립트 파일 또는 실행할 수 �
     + FullyQualifiedErrorId : CommandNotFoundException
  
 PS C:\Users\round\.cursor\projects\empty-window> git commit -m "first commit"
+ *  History restored 
+
+PS C:\Users\round> 
+ *  History restored 
+
+PS C:\Users\round> 
  *  History restored 
 
 PS C:\Users\round> 

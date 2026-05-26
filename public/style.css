@@ -2,330 +2,203 @@
   box-sizing: border-box;
   margin: 0;
   padding: 0;
+  font-family: 'Malgun Gothic', sans-serif;
+  user-select: none;
 }
 
 body {
-  font-family: "Segoe UI", "Malgun Gothic", sans-serif;
-  background: linear-gradient(160deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
-  min-height: 100vh;
-  color: #eee;
-  padding: 24px 16px;
-}
-
-.app {
-  max-width: 640px;
-  margin: 0 auto;
-}
-
-header {
-  text-align: center;
-  margin-bottom: 24px;
-}
-
-header h1 {
-  font-size: 1.75rem;
-  font-weight: 700;
-}
-
-.subtitle {
-  margin-top: 8px;
-  color: #a8b8d8;
-  font-size: 0.95rem;
-}
-
-.scoreboard {
+  background-color: #0d1117;
+  color: #c9d1d9;
+  height: 100vh;
   display: flex;
+  flex-direction: column;
+  justify-content: center;
   align-items: center;
+  overflow: hidden;
+}
+
+.hidden { display: none !important; }
+
+/* 로비 레이아웃 */
+#lobby-screen {
+  text-align: center;
+  background: #161b22;
+  padding: 40px;
+  border-radius: 12px;
+  border: 2px solid #30363d;
+}
+.game-title { margin-bottom: 20px; font-size: 28px; color: #58a6ff; }
+#match-btn {
+  padding: 12px 30px;
+  font-size: 18px;
+  background: #238636;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+#match-btn:hover { background: #2ea043; }
+#status-text { margin-top: 15px; color: #8b949e; }
+
+/* 게임 화면 배치 */
+#game-screen {
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
   justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 28px;
+  background: #070a0e;
 }
 
-.score-box {
-  flex: 1;
-  background: rgba(255, 255, 255, 0.08);
-  border-radius: 12px;
-  padding: 14px;
-  text-align: center;
-  border: 2px solid transparent;
+/* 플레이어 패널 (AOS 스타일) */
+.player-panel {
+  background: linear-gradient(180deg, #161b22 0%, #0d1117 100%);
+  padding: 15px;
+  border: 1px solid #30363d;
 }
+#enemy-area { border-bottom: 3px solid #f85149; }
+#my-area { border-top: 3px solid #58a6ff; }
 
-.score-box.you {
-  border-color: #4ecca3;
+.panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 5px;
 }
+.panel-title { font-size: 16px; color: #f0f6fc; }
 
-.score-box.opponent,
-.score-box.bot {
-  border-color: #e94560;
-}
-
-.score-box .label {
-  display: block;
-  font-size: 0.85rem;
-  color: #aaa;
+/* 스탯 게이지 바 */
+.stat-bars { width: 100%; max-width: 600px; margin: 5px 0; }
+.bar-container {
+  width: 100%;
+  height: 22px;
+  background: #21262d;
+  border-radius: 4px;
+  position: relative;
   margin-bottom: 4px;
+  overflow: hidden;
+  border: 1px solid #484f58;
 }
-
-.score-box .score {
-  font-size: 2rem;
-  font-weight: 700;
-}
-
-.round-info {
-  font-size: 0.9rem;
-  color: #ccc;
-  white-space: nowrap;
-}
-
-.battle-area {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 16px;
-  margin-bottom: 20px;
-}
-
-.played-card {
-  flex: 1;
-  text-align: center;
-}
-
-.slot-label {
-  font-size: 0.8rem;
-  color: #999;
-  margin-bottom: 8px;
-}
-
-.card-display {
-  width: 72px;
-  height: 96px;
-  margin: 0 auto;
-  background: #fff;
-  color: #1a1a2e;
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 2.25rem;
-  font-weight: 800;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
-}
-
-.card-display.empty {
-  background: rgba(255, 255, 255, 0.1);
-  color: #666;
-  font-size: 1.5rem;
-}
-
-.vs {
-  font-weight: 700;
-  color: #e94560;
-  font-size: 1.1rem;
-}
-
-.message {
-  text-align: center;
-  min-height: 2.5em;
-  margin-bottom: 24px;
-  font-size: 1.05rem;
-  line-height: 1.5;
-  color: #f0f0f0;
-}
-
-.message.win {
-  color: #4ecca3;
-}
-
-.message.lose {
-  color: #ff6b6b;
-}
-
-.message.draw {
-  color: #ffd93d;
-}
-
-.hand-section h2 {
-  font-size: 1rem;
-  margin-bottom: 12px;
-  color: #bbb;
-  font-weight: 600;
-}
-
-.hand {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  justify-content: center;
-}
-
-.card-btn {
-  width: 56px;
-  height: 76px;
-  border: none;
-  border-radius: 10px;
-  background: linear-gradient(145deg, #fff 0%, #e8e8e8 100%);
-  color: #1a1a2e;
-  font-size: 1.5rem;
-  font-weight: 800;
-  cursor: pointer;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
-  transition: transform 0.15s, box-shadow 0.15s;
-}
-
-.card-btn:hover:not(:disabled) {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 20px rgba(78, 204, 163, 0.4);
-}
-
-.card-btn:disabled {
-  opacity: 0.35;
-  cursor: not-allowed;
-  transform: none;
-}
-
-.screen {
+.bar { height: 100%; width: 100%; transition: width 0.3s ease-out; }
+.hp-bar { background: #238636; } /* 초록색 HP바 */
+.energy-bar { background: #1f6feb; } /* 파란색 에너지바 */
+.bar-text {
+  position: absolute;
   width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: bold;
+  color: #fff;
+  text-shadow: 1px 1px 2px #000;
 }
 
-.lobby-hint {
-  text-align: center;
-  color: #a8b8d8;
-  line-height: 1.6;
-  margin-bottom: 24px;
-  font-size: 0.95rem;
+.sub-stats { font-size: 13px; color: #8b949e; margin: 4px 0; }
+.sub-stats b { color: #f0f6fc; }
+.card-counts { font-size: 13px; color: #8b949e; }
+.card-counts button, .sub-stats button {
+  background: #21262d; color: #c9d1d9; border: 1px solid #30363d;
+  padding: 2px 8px; border-radius: 4px; cursor: pointer; margin-left: 5px;
 }
 
-.lobby-status {
-  text-align: center;
-  margin-top: 16px;
-  color: #ccc;
-  min-height: 1.5em;
+/* 필드 정중앙 구역 */
+#battle-field {
+  flex-grow: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+}
+#drop-zone {
+  width: 80%;
+  max-width: 500px;
+  height: 160px;
+  border: 2px dashed #484f58;
+  border-radius: 10px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: #8b949e;
+  position: relative;
+  background: rgba(22, 27, 34, 0.5);
+}
+#drop-zone.hover {
+  border-color: #58a6ff;
+  background: rgba(56, 139, 253, 0.1);
 }
 
-.connection-status {
-  text-align: center;
-  margin-bottom: 16px;
-  font-size: 0.9rem;
-  padding: 8px 12px;
+/* 임시 카드 틀 그래픽 */
+.card-frame {
+  width: 125px;
+  height: 180px;
+  background: #1f242c;
+  border: 2px solid #444c56;
   border-radius: 8px;
-  background: rgba(255, 255, 255, 0.06);
+  position: relative;
+  cursor: grab;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 8px;
+  transition: transform 0.1s;
 }
-
-.connection-status.ok {
-  color: #4ecca3;
+.card-frame:hover {
+  transform: translateY(-10px) scale(1.05);
+  border-color: #58a6ff;
+  z-index: 10;
 }
-
-.connection-status.error {
-  color: #ff6b6b;
-  line-height: 1.5;
-}
-
-.searching-subtext {
-  margin-top: 12px;
-  color: #a8b8d8;
-  font-size: 0.9rem;
-  line-height: 1.5;
-}
-
-.primary-btn,
-.secondary-btn {
-  display: block;
-  width: 100%;
-  padding: 16px;
-  font-size: 1.15rem;
-  font-weight: 700;
-  border: none;
-  border-radius: 12px;
-  cursor: pointer;
-}
-
-.primary-btn {
-  background: #4ecca3;
-  color: #1a1a2e;
-}
-
-.primary-btn:hover:not(:disabled) {
-  background: #3db892;
-}
-
-.primary-btn:disabled {
-  opacity: 0.6;
-  cursor: wait;
-}
-
-.secondary-btn {
-  margin-top: 16px;
-  background: rgba(255, 255, 255, 0.12);
-  color: #eee;
-}
-
-.secondary-btn:hover {
-  background: rgba(255, 255, 255, 0.2);
-}
-
-.searching-box {
-  text-align: center;
-  padding: 32px 16px;
-}
-
-.spinner {
-  width: 48px;
-  height: 48px;
-  margin: 0 auto 20px;
-  border: 4px solid rgba(255, 255, 255, 0.15);
-  border-top-color: #4ecca3;
+.card-cost-badge {
+  position: absolute;
+  top: -8px; left: -8px;
+  background: #1f6feb; color: white;
+  font-size: 11px; font-weight: bold;
+  width: 24px; height: 24px;
   border-radius: 50%;
-  animation: spin 0.9s linear infinite;
+  display: flex; align-items: center; justify-content: center;
+  border: 1px solid #fff;
+}
+.card-name-label { font-size: 12px; font-weight: bold; text-align: center; margin-top: 5px; color: #f0f6fc; }
+.card-img-placeholder { flex-grow: 1; margin: 6px 0; background: #0d1117; border: 1px dashed #30363d; border-radius: 4px; }
+.card-effect-text { font-size: 10px; color: #8b949e; text-align: center; line-height: 1.2; word-break: keep-all; }
+
+/* 패 구역 배치 */
+#my-hand {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 10px;
+  height: 190px;
 }
 
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
+/* 버튼 및 부속 UI */
+#end-turn-btn {
+  background: #f85149; color: white; border: none; padding: 6px 15px;
+  border-radius: 4px; cursor: pointer; font-weight: bold;
+}
+#end-turn-btn:hover { background: #da3633; }
+#phase-badge {
+  background: #30363d; padding: 4px 10px; border-radius: 12px; font-size: 12px; color: #58a6ff;
 }
 
-.searching-text {
-  font-size: 1.2rem;
-  font-weight: 600;
-  margin-bottom: 8px;
+/* 팝업 모달창 */
+.modal {
+  position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+  background: rgba(0,0,0,0.7); display: flex; justify-content: center; align-items: center; z-index: 100;
 }
-
-.results-box {
-  text-align: center;
-  padding: 40px 16px;
-  background: rgba(255, 255, 255, 0.06);
-  border-radius: 16px;
+.modal-content {
+  background: #161b22; border: 2px solid #30363d; padding: 25px; border-radius: 10px;
+  width: 90%; max-width: 400px; text-align: center;
 }
-
-.results-title {
-  font-size: 2rem;
-  font-weight: 800;
-  margin-bottom: 16px;
+#grave-list {
+  max-height: 250px; overflow-y: auto; margin: 15px 0; text-align: left;
+  background: #0d1117; padding: 10px; border-radius: 6px;
 }
-
-.results-message {
-  font-size: 1.15rem;
-  line-height: 1.6;
-  margin-bottom: 20px;
-}
-
-.results-message.win {
-  color: #4ecca3;
-}
-
-.results-message.lose {
-  color: #ff6b6b;
-}
-
-.results-message.draw {
-  color: #ffd93d;
-}
-
-.results-hint {
-  color: #999;
-  font-size: 0.9rem;
-}
-
-.hidden {
-  display: none !important;
+.grave-item { padding: 4px 0; border-bottom: 1px solid #21262d; font-size: 13px; }
+.modal-content button {
+  background: #21262d; color: white; border: 1px solid #484f58; padding: 6px 20px; border-radius: 4px; cursor: pointer;
 }

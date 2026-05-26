@@ -1,5 +1,5 @@
 ---
-pid: 4908
+pid: 3796
 cwd: |
   C:\Users\round
 ---
@@ -34,6 +34,12 @@ node : 'node' 용어가 cmdlet, 함수, 스크립트 파일 또는 실행할 수
     + FullyQualifiedErrorId : CommandNotFoundException
  
 PS C:\Users\round\.cursor\projects\empty-window> 
+ *  History restored 
+
+PS C:\Users\round> 
+ *  History restored 
+
+PS C:\Users\round> 
  *  History restored 
 
 PS C:\Users\round> 

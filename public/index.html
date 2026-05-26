@@ -1,94 +1,88 @@
 <!DOCTYPE html>
 <html lang="ko">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>숫자 카드 내기 — PVP 매칭</title>
-    <link rel="stylesheet" href="/style.css" />
-  </head>
-  <body>
-    <div class="app">
-      <header>
-        <h1>숫자 카드 내기</h1>
-        <p class="subtitle">친구와 실시간 대전 (매칭 모드)</p>
-      </header>
-
-      <!-- 매칭 화면 -->
-      <section id="screen-lobby" class="screen">
-        <p class="lobby-hint">
-          매칭은 <strong>동시에 2명</strong>이 필요합니다.<br />
-          테스트: Chrome 탭 1개 + <strong>시크릿 창</strong>(또는 Edge)에서 같은 주소로
-          접속한 뒤, <strong>둘 다</strong> Find match를 누르세요.
-        </p>
-        <p id="connection-status" class="connection-status">서버 연결 확인 중…</p>
-        <button id="find-match-btn" class="primary-btn" type="button">
-          Find match
-        </button>
-        <p id="lobby-status" class="lobby-status"></p>
-      </section>
-
-      <!-- 매칭 대기 -->
-      <section id="screen-searching" class="screen hidden">
-        <div class="searching-box">
-          <div class="spinner" aria-hidden="true"></div>
-          <p class="searching-text">매칭 찾는중...</p>
-          <p class="searching-subtext">
-            다른 플레이어가 Find match를 누르면 바로 시작됩니다.<br />
-            (혼자 한 탭만 켜두면 계속 대기합니다)
-          </p>
-          <button id="cancel-match-btn" class="secondary-btn" type="button">
-            취소
-          </button>
-        </div>
-      </section>
-
-      <!-- 게임 -->
-      <section id="screen-game" class="screen hidden">
-        <section class="scoreboard">
-          <div class="score-box you">
-            <span class="label">나</span>
-            <span id="player-score" class="score">0</span>
-          </div>
-          <div class="round-info">
-            <span id="round-label">1 / 10 턴</span>
-          </div>
-          <div class="score-box opponent">
-            <span id="opponent-label" class="label">상대</span>
-            <span id="opponent-score" class="score">0</span>
-          </div>
-        </section>
-
-        <section class="battle-area">
-          <div class="played-card slot you">
-            <p class="slot-label">내가 낸 카드</p>
-            <div id="player-played" class="card-display empty">—</div>
-          </div>
-          <div class="vs">VS</div>
-          <div class="played-card slot opponent">
-            <p class="slot-label">상대가 낸 카드</p>
-            <div id="opponent-played" class="card-display empty">—</div>
-          </div>
-        </section>
-
-        <p id="message" class="message">카드 한 장을 골라서 클릭하세요.</p>
-
-        <section class="hand-section">
-          <h2>내 손패 (1~10, 각 1장씩)</h2>
-          <div id="player-hand" class="hand"></div>
-        </section>
-      </section>
-
-      <!-- 결과 -->
-      <section id="screen-results" class="screen hidden">
-        <div class="results-box">
-          <p id="results-title" class="results-title">게임 종료</p>
-          <p id="results-message" class="results-message"></p>
-          <p class="results-hint">잠시 후 매칭 화면으로 돌아갑니다…</p>
-        </div>
-      </section>
+<head>
+    <meta charset="UTF-8">
+    <title>AOS 1v1 카드 배틀</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="lobby-screen">
+        <h1 class="game-title">AOS 1v1 카드 배틀</h1>
+        <button id="match-btn">매칭 찾기</button>
+        <p id="status-text">상태: 대기 중</p>
     </div>
 
-    <script src="https://cdn.socket.io/4.8.1/socket.io.min.js"></script>
-    <script src="/game.js"></script>
-  </body>
+    <div id="game-screen" class="hidden">
+        <div id="enemy-area" class="player-panel">
+            <h2 class="panel-title">상대 플레이어</h2>
+            <div class="stat-bars">
+                <div class="bar-container hp-container">
+                    <div id="enemy-hp-bar" class="bar hp-bar"></div>
+                    <span id="enemy-hp-text" class="bar-text">5000 / 5000</span>
+                </div>
+                <div class="bar-container energy-container">
+                    <div id="enemy-energy-bar" class="bar energy-bar"></div>
+                    <span id="enemy-energy-text" class="bar-text">600 / 600</span>
+                </div>
+            </div>
+            <div class="sub-stats">
+                <span>공격력: <b id="enemy-atk">300</b></span> | 
+                <span>방어력: <b id="enemy-def">100</b></span> | 
+                <span>HP재생: <b id="enemy-hpreg">100</b></span> | 
+                <span>에너지재생: <b id="enemy-nrgreg">200</b></span>
+            </div>
+            <div class="card-counts">
+                <span>상대 패: <b id="enemy-hand-count">0</b>장</span> | 
+                <span>남은 덱: <b id="enemy-deck-count">0</b>장</span> | 
+                <button onclick="openGraveyard('enemy')">상대 무덤 보기</button>
+            </div>
+        </div>
+
+        <div id="battle-field">
+            <div id="drop-zone">
+                <p id="drop-zone-text">여기에 카드를 드래그하여 사용하세요</p>
+                <div id="recent-card-view" class="hidden"></div>
+            </div>
+        </div>
+
+        <div id="my-area" class="player-panel">
+            <div class="panel-header">
+                <h2 class="panel-title">내 캐릭터 (나)</h2>
+                <button id="end-turn-btn" class="hidden">턴 종료</button>
+                <div id="phase-badge">대기 중...</div>
+            </div>
+            <div class="stat-bars">
+                <div class="bar-container hp-container">
+                    <div id="my-hp-bar" class="bar hp-bar"></div>
+                    <span id="my-hp-text" class="bar-text">5000 / 5000</span>
+                </div>
+                <div class="bar-container energy-container">
+                    <div id="my-energy-bar" class="bar energy-bar"></div>
+                    <span id="my-energy-text" class="bar-text">600 / 600</span>
+                </div>
+            </div>
+            <div class="sub-stats">
+                <span>공격력: <b id="my-atk">300</b></span> | 
+                <span>방어력: <b id="my-def">100</b></span> | 
+                <span>HP재생: <b id="my-hpreg">100</b></span> | 
+                <span>에너지재생: <b id="my-nrgreg">200</b></span> | 
+                <span>남은 덱: <b id="my-deck-count">0</b>장</span> | 
+                <button onclick="openGraveyard('my')">내 무덤 보기</button>
+            </div>
+
+            <div id="my-hand"></div>
+        </div>
+    </div>
+
+    <div id="grave-modal" class="modal hidden">
+        <div class="modal-content">
+            <h3 id="grave-title">카드 무덤</h3>
+            <div id="grave-list"></div>
+            <button onclick="closeGraveyard()">닫기</button>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="game.js"></script>
+</body>
 </html>

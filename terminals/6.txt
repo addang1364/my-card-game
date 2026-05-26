@@ -1,43 +1,8 @@
 ---
-pid: 10480
+pid: 9568
 cwd: |
   C:\Users\round
 ---
-e replaced by CRLF the next time Git touches it
-warning: in the working copy of 'mcps/cursor-ide-browser/SERVER_METADATA.json', LF will be replaced by CRLF the next time Git touches it
-warning: in the working copy of 'mcps/cursor-ide-browser/tools/browser_cdp.json', LF will be replaced by CRLF the next time Git touches it
-warning: in the working copy of 'mcps/cursor-ide-browser/tools/browser_click.json', LF will be replaced by CRLF the next time Git touches it
-warning: in the working copy of 'mcps/cursor-ide-browser/tools/browser_drag.json', LF will be replaced by CRLF the next time Git touches it
-warning: in the working copy of 'mcps/cursor-ide-browser/tools/browser_fill.json', LF will be replaced by CRLF the next time Git touches it
-warning: in the working copy of 'mcps/cursor-ide-browser/tools/browser_get_bounding_box.json', LF will be replaced by CRLF the next time Git touches it
-warning: in the working copy of 'mcps/cursor-ide-browser/tools/browser_highlight.json', LF will be replaced by CRLF the next time Git touches it
-warning: in the working copy of 'mcps/cursor-ide-browser/tools/browser_lock.json', LF will be replaced by CRLF the next time Git touches it
-warning: in the working copy of 'mcps/cursor-ide-browser/tools/browser_mouse_click_xy.json', LF will be replaced by CRLF the next time Git touches it
-warning: in the working copy of 'mcps/cursor-ide-browser/tools/browser_navigate.json', LF will be replaced by CRLF the next time Git touches it
-warning: in the working copy of 'mcps/cursor-ide-browser/tools/browser_press_key.json', LF will be replaced by CRLF the next time Git touches it
-warning: in the working copy of 'mcps/cursor-ide-browser/tools/browser_scroll.json', LF will be replaced by CRLF the next time Git touches it
-warning: in the working copy of 'mcps/cursor-ide-browser/tools/browser_select_option.json', LF will be replaced by CRLF the next time Git touches it
-warning: in the working copy of 'mcps/cursor-ide-browser/tools/browser_snapshot.json', LF will be replaced by CRLF the next time Git touches it
-warning: in the working copy of 'mcps/cursor-ide-browser/tools/browser_tabs.json', LF will be replaced by CRLF the next time Git touches it
-warning: in the working copy of 'mcps/cursor-ide-browser/tools/browser_take_screenshot.json', LF will be replaced by CRLF the next time Git touches it
-warning: in the working copy of 'mcps/cursor-ide-browser/tools/browser_type.json', LF will be replaced by CRLF the next time Git touches it
-warning: in the working copy of 'terminals/1.txt', LF will be replaced by CRLF the next time Git touches it
-warning: in the working copy of 'terminals/2.txt', LF will be replaced by CRLF the next time Git touches it
-warning: in the working copy of 'terminals/3.txt', LF will be replaced by CRLF the next time Git touches it
-warning: in the working copy of 'terminals/4.txt', LF will be replaced by CRLF the next time Git touches it
-warning: in the working copy of 'terminals/5.txt', LF will be replaced by CRLF the next time Git touches it
-warning: in the working copy of 'terminals/6.txt', LF will be replaced by CRLF the next time Git touches it
-PS C:\Users\round\.cursor\projects\empty-window> git commit -m "first commit"
-Author identity unknown
-
-*** Please tell me who you are.
-
-Run
-
-  git config --global user.email "you@example.com"
-  git config --global user.name "Your Name"
-
-to set your account's default identity.
 Omit --global to set the identity only in this repository.
 
 fatal: unable to auto-detect email address (got 'round@DESKTOP-7KI8883.(none)')
@@ -109,3 +74,25 @@ To https://github.com/addang1364/my-card-game.git
  * [new branch]      main -> main
 branch 'main' set up to track 'origin/main'.
 PS C:\Users\round\.cursor\projects\empty-window> git add .
+warning: in the working copy of 'agent-transcripts/a0df35af-0336-449f-bdd4-c0a1af2c95dd/a0df35af-0336-449f-bdd4-c0a1af2c95dd.jsonl', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'terminals/6.txt', LF will be replaced by CRLF the next time Git touches it
+PS C:\Users\round\.cursor\projects\empty-window> git commit -m "fix: 라우팅 및 리로드 버그 수정"
+[main e5ded58] fix: 라우팅 및 리로드 버그 수정
+ 5 files changed, 171 insertions(+), 13 deletions(-)
+PS C:\Users\round\.cursor\projects\empty-window> git push
+Enumerating objects: 21, done.
+Counting objects: 100% (21/21), done.
+Delta compression using up to 12 threads
+Compressing objects: 100% (11/11), done.
+Writing objects: 100% (11/11), 5.46 KiB | 932.00 KiB/s, done.
+Total 11 (delta 6), reused 0 (delta 0), pack-reused 0 (from 0)
+remote: Resolving deltas: 100% (6/6), completed with 6 local objects.
+To https://github.com/addang1364/my-card-game.git
+   e299627..e5ded58  main -> main
+PS C:\Users\round\.cursor\projects\empty-window> 
+ *  History restored 
+
+PS C:\Users\round> 
+ *  History restored 
+
+PS C:\Users\round> 

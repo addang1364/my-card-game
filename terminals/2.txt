@@ -1,5 +1,5 @@
 ---
-pid: 2128
+pid: 25312
 cwd: |
   C:\Users\round
 ---
@@ -44,6 +44,12 @@ PS C:\Users\round\.cursor\projects\empty-window> npm.cmd start
   종료하려면 이 터미널에서 Ctrl + C 를 누르세요.
 
 
+ *  History restored 
+
+PS C:\Users\round> 
+ *  History restored 
+
+PS C:\Users\round> 
  *  History restored 
 
 PS C:\Users\round> 

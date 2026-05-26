@@ -1,5 +1,5 @@
 ---
-pid: 24188
+pid: 3712
 cwd: |
   C:\Users\round
 ---
@@ -72,6 +72,12 @@ found 0 vulnerabilities
   종료: Ctrl + C
 
 
+ *  History restored 
+
+PS C:\Users\round> 
+ *  History restored 
+
+PS C:\Users\round> 
  *  History restored 
 
 PS C:\Users\round> 
