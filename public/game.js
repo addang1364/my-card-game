@@ -11,15 +11,26 @@ const statusText = document.getElementById('status-text');
 const myHand = document.getElementById('my-hand');
 const dropZone = document.getElementById('drop-zone');
 const endTurnBtn = document.getElementById('end-turn-btn');
-const phaseBadge = document.getElementById('phase-badge');
+const turnBadge = document.getElementById('turn-badge');
+const toastLayer = document.getElementById('toast-layer');
 
-// 매칭 찾기 구조 유지
+// 시스템 알림 노출 처리 함수
+function showToast(message) {
+    const toast = document.createElement('div');
+    toast.className = 'toast-msg';
+    toast.innerText = message;
+    toastLayer.appendChild(toast);
+    setTimeout(() => {
+        toast.remove();
+    }, 3000);
+}
+
 matchBtn.addEventListener('click', () => {
     socket.emit('findMatch');
 });
 
 socket.on('matching', () => {
-    statusText.innerText = "상태: 다른 플레이어 매칭 중...";
+    statusText.innerText = "상태: 참여 대상을 찾고 있습니다...";
     matchBtn.disabled = true;
 });
 
@@ -28,6 +39,7 @@ socket.on('gameStart', ({ roomId, gameState }) => {
     myId = socket.id;
     lobbyScreen.classList.add('hidden');
     gameScreen.classList.remove('hidden');
+    showToast("조율 완료. 배틀을 시작합니다.");
     updateUI(gameState);
 });
 
@@ -35,10 +47,13 @@ socket.on('updateState', ({ gameState }) => {
     updateUI(gameState);
 });
 
+socket.on('errorMessage', ({ message }) => {
+    showToast(message);
+});
+
 socket.on('cardPlayed', ({ gameState, lastPlayedCard, playerWhoPlayed }) => {
     updateUI(gameState);
     
-    // 사용된 카드를 3초간 화면 중앙 필드에 보여주기 처리
     const view = document.getElementById('recent-card-view');
     const textNode = document.getElementById('drop-zone-text');
     
@@ -49,33 +64,36 @@ socket.on('cardPlayed', ({ gameState, lastPlayedCard, playerWhoPlayed }) => {
             <div class="card-cost-badge">${lastPlayedCard.cost}</div>
             <div class="card-name-label">${lastPlayedCard.name}</div>
             <div class="card-img-placeholder"></div>
-            <div class="card-effect-text">발동됨</div>
+            <div class="card-effect-text">발동</div>
         </div>
-        <p style="font-size:11px; margin-top:5px; text-align:center;">${playerWhoPlayed === myId ? '내가' : '상대가'} 사용함</p>
+        <p style="font-size:11px; margin-top:5px; text-align:center;">${playerWhoPlayed === myId ? '내가' : '상대가'} 사용</p>
     `;
 
     setTimeout(() => {
         view.classList.add('hidden');
         textNode.classList.remove('hidden');
-    }, 3000);
+    }, 2000);
 });
 
 socket.on('mustDiscard', ({ gameState }) => {
     updateUI(gameState);
-    phaseBadge.innerText = "7단계: 패 버리기 필요 (5장 이하로)";
-    phaseBadge.style.background = "#da3633";
-    phaseBadge.style.color = "#fff";
+    turnBadge.innerText = "초과 카드 분해 필요 (6장 이하로)";
+    turnBadge.style.background = "#da3633";
+    turnBadge.style.color = "#fff";
+    showToast("보유 카드가 허용치를 초과했습니다. 필요 없는 카드를 선택하여 반환하세요.");
 });
 
 socket.on('gameOver', ({ winner, disconnect }) => {
     if (disconnect) {
-        alert("상대방의 연결이 끊어져 승리했습니다!");
+        showToast("상대방의 연결이 차단되어 승리했습니다.");
     } else if (winner === myId) {
-        alert("축하합니다! 상대의 라이프를 0으로 만들고 유희왕처럼 승리하셨습니다!");
+        showToast("승리했습니다! 상대의 체력을 충족 조건 이하로 하락시켰습니다.");
     } else {
-        alert("패배했습니다! 체력이 0 이하가 되었습니다.");
+        showToast("체력이 모두 고갈되어 차단되었습니다.");
     }
-    location.reload();
+    setTimeout(() => {
+        location.reload();
+    }, 4000);
 });
 
 function updateUI(gameState) {
@@ -85,84 +103,111 @@ function updateUI(gameState) {
     const me = gameState.players[myId];
     const enemy = gameState.players[enemyId];
 
-    // 내 스탯 정보 연동
+    // 내 수치 반영
     document.getElementById('my-hp-text').innerText = `${me.hp} / ${me.maxHp}`;
     document.getElementById('my-hp-bar').style.width = `${(me.hp / me.maxHp) * 100}%`;
     document.getElementById('my-energy-text').innerText = `${me.energy} / ${me.maxEnergy}`;
     document.getElementById('my-energy-bar').style.width = `${(me.energy / me.maxEnergy) * 100}%`;
     
-    document.getElementById('my-atk').innerText = me.atk;
-    document.getElementById('my-def').innerText = me.def;
-    document.getElementById('my-hpreg').innerText = me.hpRegen;
-    document.getElementById('my-nrgreg').innerText = me.energyRegen;
+    document.getElementById('my-atk').innerText = me.physAtk;
+    document.getElementById('my-power').innerText = me.magPower;
+    document.getElementById('my-pdef').innerText = me.physDef;
+    document.getElementById('my-mdef').innerText = me.magDef;
     document.getElementById('my-deck-count').innerText = me.deck.length;
 
-    // 상대 스탯 정보 연동
+    // 상대 수치 반영
     document.getElementById('enemy-hp-text').innerText = `${enemy.hp} / ${enemy.maxHp}`;
     document.getElementById('enemy-hp-bar').style.width = `${(enemy.hp / enemy.maxHp) * 100}%`;
     document.getElementById('enemy-energy-text').innerText = `${enemy.energy} / ${enemy.maxEnergy}`;
     document.getElementById('enemy-energy-bar').style.width = `${(enemy.energy / enemy.maxEnergy) * 100}%`;
     
-    document.getElementById('enemy-atk').innerText = enemy.atk;
-    document.getElementById('enemy-def').innerText = enemy.def;
-    document.getElementById('enemy-hpreg').innerText = enemy.hpRegen;
-    document.getElementById('enemy-nrgreg').innerText = enemy.energyRegen;
+    document.getElementById('enemy-atk').innerText = enemy.physAtk;
+    document.getElementById('enemy-power').innerText = enemy.magPower;
+    document.getElementById('enemy-pdef').innerText = enemy.physDef;
+    document.getElementById('enemy-mdef').innerText = enemy.magDef;
     document.getElementById('enemy-hand-count').innerText = enemy.hand.length;
     document.getElementById('enemy-deck-count').innerText = enemy.deck.length;
 
-    // 제어 버튼 갱신
-    if (gameState.turn === myId && gameState.phase === 5) {
+    // 실시간 방어율 감소 수치 팝업 정보 연동 (올림 연산 적용 구조 반영)
+    const myPhysPercent = Math.ceil((100 / (100 + me.physDef)) * 100);
+    const myMagPercent = Math.ceil((100 / (100 + me.magDef)) * 100);
+    const enemyPhysPercent = Math.ceil((100 / (100 + enemy.physDef)) * 100);
+    const enemyMagPercent = Math.ceil((100 / (100 + enemy.magDef)) * 100);
+
+    document.getElementById('my-pdef-box').title = `받는 물리 피해: ${myPhysPercent}% (감소율: ${100 - myPhysPercent}%)`;
+    document.getElementById('my-mdef-box').title = `받는 마법 피해: ${myMagPercent}% (감소율: ${100 - myMagPercent}%)`;
+    document.getElementById('enemy-pdef-box').title = `받는 물리 피해: ${enemyPhysPercent}% (감소율: ${100 - enemyPhysPercent}%)`;
+    document.getElementById('enemy-mdef-box').title = `받는 마법 피해: ${enemyMagPercent}% (감소율: ${100 - enemyMagPercent}%)`;
+
+    // 제어 인프라 연동
+    if (gameState.turn === myId && gameState.phase === "main") {
         endTurnBtn.classList.remove('hidden');
-        phaseBadge.innerText = "5단계: 내 메인 페이즈";
-        phaseBadge.style.background = "#238636";
-    } else if (gameState.turn === myId && gameState.phase === 7) {
+        turnBadge.innerText = "내 차례";
+        turnBadge.style.background = "#238636";
+        turnBadge.style.color = "#fff";
+    } else if (gameState.turn === myId && gameState.phase === "discard") {
         endTurnBtn.classList.add('hidden');
     } else {
         endTurnBtn.classList.add('hidden');
-        phaseBadge.innerText = "상대방 턴 진행 중...";
-        phaseBadge.style.background = "#30363d";
+        turnBadge.innerText = "상대방 차례";
+        turnBadge.style.background = "#30363d";
+        turnBadge.style.color = "#8b949e";
     }
 
-    // 카드 패 드로잉 및 드래그 바인딩
+    // 카드 목록 렌더링 및 실시간 비용 검사 발광 효과 바인딩
     myHand.innerHTML = "";
     me.hand.forEach(card => {
         const cardEl = document.createElement('div');
-        cardEl.className = 'card-frame';
+        
+        // 에너지 상한 실시간 판별 후 발광 테두리 할당
+        if (me.energy >= card.cost) {
+            cardEl.className = 'card-frame card-playable';
+        } else {
+            cardEl.className = 'card-frame card-unplayable';
+        }
+        
         cardEl.draggable = true;
         cardEl.dataset.instanceId = card.instanceId;
 
-        // 계수 반영 동적 문구 파싱 (소수점 일의자리 무조건 올림 규칙 적용)
         let cleanText = "";
         let hoverText = "";
 
         if (card.name === "재빠른 공격") {
-            let dmg = Math.ceil(86 + (me.atk * 0.5));
-            cleanText = `상대에게 ${dmg} 만큼의 피해를 줍니다`;
-            hoverText = `상대에게 (86 + 내 공격력의 50%) = ${dmg} 만큼의 피해를 줍니다`;
+            let total = Math.ceil(86 + (me.physAtk * 0.9));
+            cleanText = `물리 피해: ${total}`;
+            hoverText = `공식: 86 + (물리 공격력 90%) = ${total} 물리 피해`;
         } else if (card.name === "강력한 일격") {
-            let dmg = Math.ceil(me.atk * 1.5);
-            cleanText = `상대에게 ${dmg} 만큼의 피해를 줍니다`;
-            hoverText = `상대에게 (내 공격력의 150%) = ${dmg} 만큼의 피해를 줍니다`;
+            let total = Math.ceil((me.physAtk * 1.25) + (me.magPower * 1.5));
+            cleanText = `마법 피해: ${total}`;
+            hoverText = `공식: (물리 공격력 125%) + (마력 150%) = ${total} 마법 피해`;
         } else if (card.name === "재빠른 막기") {
-            cleanText = `방어력이 99 증가합니다. 상대 턴 종료 시 99 감소합니다`;
+            cleanText = `물리 방어 +31 / 마법 방어 +23 (차례 종료시 소멸)`;
             hoverText = cleanText;
-        } else if (card.name === "솟구치는 힘") {
-            cleanText = `앞으로 내 턴이 시작할 때 마다, 내 공격력이 32 증가합니다`;
-            hoverText = cleanText;
+        } else if (card.name === "거대한 방패") {
+            let total = Math.ceil(10 + (me.magPower * 2.0));
+            cleanText = `물리 방어 +${total} (차례 종료시 소멸)`;
+            hoverText = `공식: 10 + (마력 200%) = +${total} 물리 방어`;
         } else if (card.name === "자연의 순환") {
-            cleanText = `내 체력재생이 17 증가하고, 내 에너지 재생이 28 증가합니다`;
+            cleanText = `에너지 재생 증가: +41`;
             hoverText = cleanText;
         } else if (card.name === "달콤한 쿠키") {
-            cleanText = `내 덱에서 카드를 2장 뽑습니다`;
-            hoverText = cleanText;
-        } else if (card.name === "불굴의 의지") {
-            cleanText = `방어력이 23 증가합니다`;
+            cleanText = `카드 2장 추가 획득`;
             hoverText = cleanText;
         } else if (card.name === "신성한 회복") {
-            cleanText = `내 체력을 96 회복합니다`;
-            hoverText = cleanText;
+            let total = Math.ceil(30 + (me.magPower * 0.65));
+            cleanText = `체력 회복: +${total}`;
+            hoverText = `공식: 30 + (마력 65%) = +${total} 회복`;
         } else if (card.name === "파인애플") {
-            cleanText = `내 에너지를 130 회복합니다`;
+            cleanText = `에너지 회복: +130`;
+            hoverText = cleanText;
+        } else if (card.name === "솟구치는 힘") {
+            cleanText = `매 차례 시작할 때 물리 공격력 +3 증가`;
+            hoverText = cleanText;
+        } else if (card.name === "솟구치는 마법") {
+            cleanText = `매 차례 시작할 때 마력 +5 증가`;
+            hoverText = cleanText;
+        } else if (card.name === "보물 발굴??") {
+            cleanText = `매 차례 시작할 때 추가 카드 +1장 획득`;
             hoverText = cleanText;
         }
 
@@ -173,7 +218,6 @@ function updateUI(gameState) {
             <div id="text-${card.instanceId}" class="card-effect-text">${cleanText}</div>
         `;
 
-        // 마우스 커서 호버링 이벤트 설정 (계수 툴팁 공식 출력 규칙)
         cardEl.addEventListener('mouseenter', () => {
             document.getElementById(`text-${card.instanceId}`).innerText = hoverText;
         });
@@ -181,14 +225,13 @@ function updateUI(gameState) {
             document.getElementById(`text-${card.instanceId}`).innerText = cleanText;
         });
 
-        // HTML5 드래그 앤 드롭 핸들러 등록
         cardEl.addEventListener('dragstart', (e) => {
             e.dataTransfer.setData('text/plain', card.instanceId);
         });
 
-        // 패 버리기 페이즈일 경우 클릭만 해도 버려지도록 지원
+        // 카드 수 한도 초과 시 클릭 처리 바인딩
         cardEl.addEventListener('click', () => {
-            if (localGameState && localGameState.turn === myId && localGameState.phase === 7) {
+            if (localGameState && localGameState.turn === myId && localGameState.phase === "discard") {
                 socket.emit('discardCard', { roomId: currentRoomId, instanceId: card.instanceId });
             }
         });
@@ -197,7 +240,6 @@ function updateUI(gameState) {
     });
 }
 
-// 드롭존 공간 인터랙션 이벤트 핸들링
 dropZone.addEventListener('dragover', (e) => {
     e.preventDefault();
     dropZone.classList.add('hover');
@@ -211,8 +253,8 @@ dropZone.addEventListener('drop', (e) => {
     e.preventDefault();
     dropZone.classList.remove('hover');
     
-    if (!localGameState || localGameState.turn !== myId || localGameState.phase !== 5) {
-        alert("지금은 카드를 드래그하여 사용할 수 있는 단계가 아닙니다!");
+    if (!localGameState || localGameState.turn !== myId || localGameState.phase !== "main") {
+        showToast("사용 가능한 타이밍이 아닙니다.");
         return;
     }
 
@@ -226,18 +268,17 @@ endTurnBtn.addEventListener('click', () => {
     }
 });
 
-// 나와 상대방의 카드 무덤 열기/닫기 팝업 UI 시스템
 function openGraveyard(target) {
     if (!localGameState) return;
     const targetId = target === 'my' ? myId : localGameState.playerIds.find(id => id !== myId);
     const p = localGameState.players[targetId];
 
-    document.getElementById('grave-title').innerText = `${target === 'my' ? '내' : '상대'} 카드 무덤 (${p.graveyard.length}장)`;
+    document.getElementById('grave-title').innerText = `${target === 'my' ? '내' : '상대'} 사용된 카드 목록 (${p.graveyard.length}장)`;
     const listEl = document.getElementById('grave-list');
     listEl.innerHTML = "";
 
     if (p.graveyard.length === 0) {
-        listEl.innerHTML = "<p style='color:#8b949e; font-size:12px;'>버려진 카드가 없습니다.</p>";
+        listEl.innerHTML = "<p style='color:#8b949e; font-size:12px;'>기록이 존재하지 않습니다.</p>";
     } else {
         p.graveyard.forEach(card => {
             const item = document.createElement('div');

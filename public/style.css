@@ -1,204 +1,221 @@
 * {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-  font-family: 'Malgun Gothic', sans-serif;
-  user-select: none;
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Malgun Gothic', sans-serif;
+    user-select: none;
 }
 
 body {
-  background-color: #0d1117;
-  color: #c9d1d9;
-  height: 100vh;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  overflow: hidden;
+    background-color: #0d1117;
+    color: #c9d1d9;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
 }
 
 .hidden { display: none !important; }
 
-/* 로비 레이아웃 */
+/* 내장 알림 시스템 스타일 */
+#toast-layer {
+    position: fixed;
+    top: 20px;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    align-items: center;
+    pointer-events: none;
+}
+.toast-msg {
+    background: rgba(22, 27, 34, 0.95);
+    color: #f0f6fc;
+    border: 1px solid #30363d;
+    padding: 12px 24px;
+    border-radius: 6px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+    font-size: 14px;
+    font-weight: bold;
+    animation: fadeInOut 3s forwards;
+}
+@keyframes fadeInOut {
+    0% { opacity: 0; transform: translateY(-10px); }
+    15% { opacity: 1; transform: translateY(0); }
+    85% { opacity: 1; transform: translateY(0); }
+    100% { opacity: 0; transform: translateY(-10px); }
+}
+
+/* 로비 구조 */
 #lobby-screen {
-  text-align: center;
-  background: #161b22;
-  padding: 40px;
-  border-radius: 12px;
-  border: 2px solid #30363d;
+    text-align: center;
+    background: #161b22;
+    padding: 40px;
+    border-radius: 12px;
+    border: 2px solid #30363d;
 }
 .game-title { margin-bottom: 20px; font-size: 28px; color: #58a6ff; }
 #match-btn {
-  padding: 12px 30px;
-  font-size: 18px;
-  background: #238636;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: 0.2s;
+    padding: 12px 30px;
+    font-size: 18px;
+    background: #238636;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: 0.2s;
 }
 #match-btn:hover { background: #2ea043; }
 #status-text { margin-top: 15px; color: #8b949e; }
 
-/* 게임 화면 배치 */
+/* 게임 메인 그리드 */
 #game-screen {
-  width: 100vw;
-  height: 100vh;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  background: #070a0e;
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    background: #070a0e;
 }
 
-/* 플레이어 패널 (AOS 스타일) */
 .player-panel {
-  background: linear-gradient(180deg, #161b22 0%, #0d1117 100%);
-  padding: 15px;
-  border: 1px solid #30363d;
+    background: linear-gradient(180deg, #161b22 0%, #0d1117 100%);
+    padding: 15px;
+    border: 1px solid #30363d;
 }
 #enemy-area { border-bottom: 3px solid #f85149; }
 #my-area { border-top: 3px solid #58a6ff; }
 
 .panel-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 5px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 5px;
 }
 .panel-title { font-size: 16px; color: #f0f6fc; }
 
-/* 스탯 게이지 바 */
-.stat-bars { width: 100%; max-width: 600px; margin: 5px 0; }
-.bar-container {
-  width: 100%;
-  height: 22px;
-  background: #21262d;
-  border-radius: 4px;
-  position: relative;
-  margin-bottom: 4px;
-  overflow: hidden;
-  border: 1px solid #484f58;
-}
-.bar { height: 100%; width: 100%; transition: width 0.3s ease-out; }
-.hp-bar { background: #238636; } /* 초록색 HP바 */
-.energy-bar { background: #1f6feb; } /* 파란색 에너지바 */
-.bar-text {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  top: 0;
-  left: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 12px;
-  font-weight: bold;
-  color: #fff;
-  text-shadow: 1px 1px 2px #000;
-}
-
+/* 스탯 정보창 수치 가독성 및 툴팁 효과 */
 .sub-stats { font-size: 13px; color: #8b949e; margin: 4px 0; }
 .sub-stats b { color: #f0f6fc; }
+.hover-tip {
+    position: relative;
+    cursor: help;
+    border-bottom: 1px dashed #8b949e;
+}
+
+/* 게이지 바 구조 */
+.stat-bars { width: 100%; max-width: 600px; margin: 5px 0; }
+.bar-container {
+    width: 100%;
+    height: 22px;
+    background: #21262d;
+    border-radius: 4px;
+    position: relative;
+    margin-bottom: 4px;
+    overflow: hidden;
+    border: 1px solid #484f58;
+}
+.bar { height: 100%; width: 100%; transition: width 0.3s ease-out; }
+.hp-bar { background: #238636; }
+.energy-bar { background: #1f6feb; }
+.bar-text {
+    position: absolute;
+    width: 100%; height: 100%; top: 0; left: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: bold; color: #fff;
+    text-shadow: 1px 1px 2px #000;
+}
+
 .card-counts { font-size: 13px; color: #8b949e; }
 .card-counts button, .sub-stats button {
-  background: #21262d; color: #c9d1d9; border: 1px solid #30363d;
-  padding: 2px 8px; border-radius: 4px; cursor: pointer; margin-left: 5px;
+    background: #21262d; color: #c9d1d9; border: 1px solid #30363d;
+    padding: 2px 8px; border-radius: 4px; cursor: pointer; margin-left: 5px;
 }
 
-/* 필드 정중앙 구역 */
+/* 플레이 공간 */
 #battle-field {
-  flex-grow: 1;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 20px;
+    flex-grow: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
 }
 #drop-zone {
-  width: 80%;
-  max-width: 500px;
-  height: 160px;
-  border: 2px dashed #484f58;
-  border-radius: 10px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  color: #8b949e;
-  position: relative;
-  background: rgba(22, 27, 34, 0.5);
+    width: 80%; max-width: 500px; height: 160px;
+    border: 2px dashed #484f58; border-radius: 10px;
+    display: flex; justify-content: center; align-items: center;
+    color: #8b949e; position: relative; background: rgba(22, 27, 34, 0.5);
 }
 #drop-zone.hover {
-  border-color: #58a6ff;
-  background: rgba(56, 139, 253, 0.1);
+    border-color: #58a6ff; background: rgba(56, 139, 253, 0.1);
 }
 
-/* 임시 카드 틀 그래픽 */
+/* 카드 프레임워크 및 조건별 테두리 발광 처리 */
 .card-frame {
-  width: 125px;
-  height: 180px;
-  background: #1f242c;
-  border: 2px solid #444c56;
-  border-radius: 8px;
-  position: relative;
-  cursor: grab;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  padding: 8px;
-  transition: transform 0.1s;
+    width: 125px; height: 180px;
+    background: #1f242c;
+    border: 2px solid #444c56;
+    border-radius: 8px; position: relative;
+    cursor: grab; display: flex; flex-direction: column;
+    justify-content: space-between; padding: 8px;
+    transition: transform 0.1s, box-shadow 0.2s;
 }
 .card-frame:hover {
-  transform: translateY(-10px) scale(1.05);
-  border-color: #58a6ff;
-  z-index: 10;
+    transform: translateY(-10px) scale(1.05);
+    z-index: 10;
 }
+
+/* 에너지 상태별 테두리 클래스 */
+.card-playable {
+    border-color: #1f6feb !important;
+    box-shadow: 0 0 12px rgba(31, 111, 235, 0.8);
+}
+.card-unplayable {
+    border-color: #f85149 !important;
+    box-shadow: 0 0 12px rgba(248, 81, 73, 0.6);
+}
+
 .card-cost-badge {
-  position: absolute;
-  top: -8px; left: -8px;
-  background: #1f6feb; color: white;
-  font-size: 11px; font-weight: bold;
-  width: 24px; height: 24px;
-  border-radius: 50%;
-  display: flex; align-items: center; justify-content: center;
-  border: 1px solid #fff;
+    position: absolute; top: -8px; left: -8px;
+    background: #1f6feb; color: white;
+    font-size: 11px; font-weight: bold;
+    width: 24px; height: 24px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    border: 1px solid #fff;
 }
-.card-name-label { font-size: 12px; font-weight: bold; text-align: center; margin-top: 5px; color: #f0f6fc; }
+.card-name-label { font-size: 11px; font-weight: bold; text-align: center; margin-top: 5px; color: #f0f6fc; }
 .card-img-placeholder { flex-grow: 1; margin: 6px 0; background: #0d1117; border: 1px dashed #30363d; border-radius: 4px; }
 .card-effect-text { font-size: 10px; color: #8b949e; text-align: center; line-height: 1.2; word-break: keep-all; }
 
-/* 패 구역 배치 */
 #my-hand {
-  display: flex;
-  justify-content: center;
-  gap: 10px;
-  margin-top: 10px;
-  height: 190px;
+    display: flex; justify-content: center; gap: 10px; margin-top: 10px; height: 190px;
 }
 
-/* 버튼 및 부속 UI */
 #end-turn-btn {
-  background: #f85149; color: white; border: none; padding: 6px 15px;
-  border-radius: 4px; cursor: pointer; font-weight: bold;
+    background: #f85149; color: white; border: none; padding: 6px 15px;
+    border-radius: 4px; cursor: pointer; font-weight: bold;
 }
 #end-turn-btn:hover { background: #da3633; }
-#phase-badge {
-  background: #30363d; padding: 4px 10px; border-radius: 12px; font-size: 12px; color: #58a6ff;
+#turn-badge {
+    background: #30363d; padding: 4px 10px; border-radius: 12px; font-size: 12px; color: #58a6ff;
 }
 
-/* 팝업 모달창 */
+/* 팝업 UI 스타일 */
 .modal {
-  position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-  background: rgba(0,0,0,0.7); display: flex; justify-content: center; align-items: center; z-index: 100;
+    position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+    background: rgba(0,0,0,0.7); display: flex; justify-content: center; align-items: center; z-index: 100;
 }
 .modal-content {
-  background: #161b22; border: 2px solid #30363d; padding: 25px; border-radius: 10px;
-  width: 90%; max-width: 400px; text-align: center;
+    background: #161b22; border: 2px solid #30363d; padding: 25px; border-radius: 10px;
+    width: 90%; max-width: 400px; text-align: center;
 }
 #grave-list {
-  max-height: 250px; overflow-y: auto; margin: 15px 0; text-align: left;
-  background: #0d1117; padding: 10px; border-radius: 6px;
+    max-height: 250px; overflow-y: auto; margin: 15px 0; text-align: left;
+    background: #0d1117; padding: 10px; border-radius: 6px;
 }
 .grave-item { padding: 4px 0; border-bottom: 1px solid #21262d; font-size: 13px; }
 .modal-content button {
-  background: #21262d; color: white; border: 1px solid #484f58; padding: 6px 20px; border-radius: 4px; cursor: pointer;
+    background: #21262d; color: white; border: 1px solid #484f58; padding: 6px 20px; border-radius: 4px; cursor: pointer;
 }

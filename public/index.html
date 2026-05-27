@@ -2,13 +2,15 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>AOS 1v1 카드 배틀</title>
+    <title>1v1 카드 배틀</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <div id="toast-layer"></div>
+
     <div id="lobby-screen">
-        <h1 class="game-title">AOS 1v1 카드 배틀</h1>
-        <button id="match-btn">매칭 찾기</button>
+        <h1 class="game-title">1v1 카드 배틀</h1>
+        <button id="match-btn">참여하기</button>
         <p id="status-text">상태: 대기 중</p>
     </div>
 
@@ -18,7 +20,7 @@
             <div class="stat-bars">
                 <div class="bar-container hp-container">
                     <div id="enemy-hp-bar" class="bar hp-bar"></div>
-                    <span id="enemy-hp-text" class="bar-text">5000 / 5000</span>
+                    <span id="enemy-hp-text" class="bar-text">2000 / 2000</span>
                 </div>
                 <div class="bar-container energy-container">
                     <div id="enemy-energy-bar" class="bar energy-bar"></div>
@@ -26,48 +28,48 @@
                 </div>
             </div>
             <div class="sub-stats">
-                <span>공격력: <b id="enemy-atk">300</b></span> | 
-                <span>방어력: <b id="enemy-def">100</b></span> | 
-                <span>HP재생: <b id="enemy-hpreg">100</b></span> | 
-                <span>에너지재생: <b id="enemy-nrgreg">200</b></span>
+                <span>물리 피해 공격력: <b id="enemy-atk">63</b></span> | 
+                <span>마력: <b id="enemy-power">59</b></span> | 
+                <span class="hover-tip" id="enemy-pdef-box">물리 피해 방어력: <b id="enemy-pdef">40</b></span> | 
+                <span class="hover-tip" id="enemy-mdef-box">마법 피해 방어력: <b id="enemy-mdef">35</b></span>
             </div>
             <div class="card-counts">
-                <span>상대 패: <b id="enemy-hand-count">0</b>장</span> | 
-                <span>남은 덱: <b id="enemy-deck-count">0</b>장</span> | 
-                <button onclick="openGraveyard('enemy')">상대 무덤 보기</button>
+                <span>보유 카드: <b id="enemy-hand-count">0</b>장</span> | 
+                <span>남은 카드 더미: <b id="enemy-deck-count">0</b>장</span> | 
+                <button onclick="openGraveyard('enemy')">사용된 카드 더미 보기</button>
             </div>
         </div>
 
         <div id="battle-field">
             <div id="drop-zone">
-                <p id="drop-zone-text">여기에 카드를 드래그하여 사용하세요</p>
+                <p id="drop-zone-text">이곳에 카드를 가져와 사용하세요</p>
                 <div id="recent-card-view" class="hidden"></div>
             </div>
         </div>
 
         <div id="my-area" class="player-panel">
             <div class="panel-header">
-                <h2 class="panel-title">내 캐릭터 (나)</h2>
-                <button id="end-turn-btn" class="hidden">턴 종료</button>
-                <div id="phase-badge">대기 중...</div>
+                <h2 class="panel-title">나</h2>
+                <button id="end-turn-btn" class="hidden">차례 종료</button>
+                <div id="turn-badge">대기 중</div>
             </div>
             <div class="stat-bars">
                 <div class="bar-container hp-container">
                     <div id="my-hp-bar" class="bar hp-bar"></div>
-                    <span id="my-hp-text" class="bar-text">5000 / 5000</span>
+                    <span id="my-hp-text" class="bar-text">2000 / 2000</span>
                 </div>
                 <div class="bar-container energy-container">
                     <div id="my-energy-bar" class="bar energy-bar"></div>
-                    <span id="my-energy-text" class="bar-text">600 / 600</span>
+                    <span id="my-energy-text" class="bar-text">300 / 600</span>
                 </div>
             </div>
             <div class="sub-stats">
-                <span>공격력: <b id="my-atk">300</b></span> | 
-                <span>방어력: <b id="my-def">100</b></span> | 
-                <span>HP재생: <b id="my-hpreg">100</b></span> | 
-                <span>에너지재생: <b id="my-nrgreg">200</b></span> | 
-                <span>남은 덱: <b id="my-deck-count">0</b>장</span> | 
-                <button onclick="openGraveyard('my')">내 무덤 보기</button>
+                <span>물리 피해 공격력: <b id="my-atk">63</b></span> | 
+                <span>마력: <b id="my-power">59</b></span> | 
+                <span class="hover-tip" id="my-pdef-box">물리 피해 방어력: <b id="my-pdef">40</b></span> | 
+                <span class="hover-tip" id="my-mdef-box">마법 피해 방어력: <b id="my-mdef">35</b></span> | 
+                <span>남은 카드 더미: <b id="my-deck-count">0</b>장</span> | 
+                <button onclick="openGraveyard('my')">사용된 카드 더미 보기</button>
             </div>
 
             <div id="my-hand"></div>
@@ -76,7 +78,7 @@
 
     <div id="grave-modal" class="modal hidden">
         <div class="modal-content">
-            <h3 id="grave-title">카드 무덤</h3>
+            <h3 id="grave-title">사용된 카드 목록</h3>
             <div id="grave-list"></div>
             <button onclick="closeGraveyard()">닫기</button>
         </div>
