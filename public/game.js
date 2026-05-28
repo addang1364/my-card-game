@@ -14,7 +14,6 @@ const endTurnBtn = document.getElementById('end-turn-btn');
 const turnBadge = document.getElementById('turn-badge');
 const toastLayer = document.getElementById('toast-layer');
 
-// 시스템 알림 노출 처리 함수
 function showToast(message) {
     const toast = document.createElement('div');
     toast.className = 'toast-msg';
@@ -63,7 +62,7 @@ socket.on('cardPlayed', ({ gameState, lastPlayedCard, playerWhoPlayed }) => {
         <div class="card-frame" style="transform:none; pointer-events:none; margin:auto;">
             <div class="card-cost-badge">${lastPlayedCard.cost}</div>
             <div class="card-name-label">${lastPlayedCard.name}</div>
-            <div class="card-img-placeholder"></div>
+            <img src="/${lastPlayedCard.image}" class="card-image-real" alt="${lastPlayedCard.name}">
             <div class="card-effect-text">발동</div>
         </div>
         <p style="font-size:11px; margin-top:5px; text-align:center;">${playerWhoPlayed === myId ? '내가' : '상대가'} 사용</p>
@@ -103,7 +102,6 @@ function updateUI(gameState) {
     const me = gameState.players[myId];
     const enemy = gameState.players[enemyId];
 
-    // 내 수치 반영
     document.getElementById('my-hp-text').innerText = `${me.hp} / ${me.maxHp}`;
     document.getElementById('my-hp-bar').style.width = `${(me.hp / me.maxHp) * 100}%`;
     document.getElementById('my-energy-text').innerText = `${me.energy} / ${me.maxEnergy}`;
@@ -115,7 +113,6 @@ function updateUI(gameState) {
     document.getElementById('my-mdef').innerText = me.magDef;
     document.getElementById('my-deck-count').innerText = me.deck.length;
 
-    // 상대 수치 반영
     document.getElementById('enemy-hp-text').innerText = `${enemy.hp} / ${enemy.maxHp}`;
     document.getElementById('enemy-hp-bar').style.width = `${(enemy.hp / enemy.maxHp) * 100}%`;
     document.getElementById('enemy-energy-text').innerText = `${enemy.energy} / ${enemy.maxEnergy}`;
@@ -128,7 +125,6 @@ function updateUI(gameState) {
     document.getElementById('enemy-hand-count').innerText = enemy.hand.length;
     document.getElementById('enemy-deck-count').innerText = enemy.deck.length;
 
-    // 실시간 방어율 감소 수치 팝업 정보 연동 (올림 연산 적용 구조 반영)
     const myPhysPercent = Math.ceil((100 / (100 + me.physDef)) * 100);
     const myMagPercent = Math.ceil((100 / (100 + me.magDef)) * 100);
     const enemyPhysPercent = Math.ceil((100 / (100 + enemy.physDef)) * 100);
@@ -139,7 +135,6 @@ function updateUI(gameState) {
     document.getElementById('enemy-pdef-box').title = `받는 물리 피해: ${enemyPhysPercent}% (감소율: ${100 - enemyPhysPercent}%)`;
     document.getElementById('enemy-mdef-box').title = `받는 마법 피해: ${enemyMagPercent}% (감소율: ${100 - enemyMagPercent}%)`;
 
-    // 제어 인프라 연동
     if (gameState.turn === myId && gameState.phase === "main") {
         endTurnBtn.classList.remove('hidden');
         turnBadge.innerText = "내 차례";
@@ -154,12 +149,10 @@ function updateUI(gameState) {
         turnBadge.style.color = "#8b949e";
     }
 
-    // 카드 목록 렌더링 및 실시간 비용 검사 발광 효과 바인딩
     myHand.innerHTML = "";
     me.hand.forEach(card => {
         const cardEl = document.createElement('div');
         
-        // 에너지 상한 실시간 판별 후 발광 테두리 할당
         if (me.energy >= card.cost) {
             cardEl.className = 'card-frame card-playable';
         } else {
@@ -214,7 +207,7 @@ function updateUI(gameState) {
         cardEl.innerHTML = `
             <div class="card-cost-badge">${card.cost}</div>
             <div class="card-name-label">${card.name}</div>
-            <div class="card-img-placeholder"></div>
+            <img src="/${card.image}" class="card-image-real" alt="${card.name}">
             <div id="text-${card.instanceId}" class="card-effect-text">${cleanText}</div>
         `;
 
@@ -229,7 +222,6 @@ function updateUI(gameState) {
             e.dataTransfer.setData('text/plain', card.instanceId);
         });
 
-        // 카드 수 한도 초과 시 클릭 처리 바인딩
         cardEl.addEventListener('click', () => {
             if (localGameState && localGameState.turn === myId && localGameState.phase === "discard") {
                 socket.emit('discardCard', { roomId: currentRoomId, instanceId: card.instanceId });

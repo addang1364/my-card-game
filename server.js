@@ -9,22 +9,21 @@ app.use(express.static(path.join(__dirname, 'public')));
 let waitingPlayers = [];
 let rooms = {};
 
-// 카드 기본 데이터 정의
+// 카드 기본 데이터 정의 (영문 .jpg 파일명 매핑 완료)
 const CARD_LIST = [
-    { id: 1, name: "재빠른 공격", cost: 86 },
-    { id: 2, name: "재빠른 막기", cost: 91 },
-    { id: 3, name: "자연의 순환", cost: 63 },
-    { id: 4, name: "강력한 일격", cost: 203 },
-    { id: 5, name: "달콤한 쿠키", cost: 30 },
-    { id: 6, name: "신성한 회복", cost: 91 },
-    { id: 7, name: "파인애플", cost: 0 },
-    { id: 8, name: "거대한 방패", cost: 112 },
-    { id: 9, name: "솟구치는 힘", cost: 133 },
-    { id: 10, name: "솟구치는 마법", cost: 67 },
-    { id: 11, name: "보물 발굴??", cost: 98 }
+    { id: 1, name: "재빠른 공격", cost: 86, image: "quick_attack.jpg" },
+    { id: 2, name: "재빠른 막기", cost: 91, image: "quick_block.jpg" },
+    { id: 3, name: "자연의 순환", cost: 63, image: "nature_cycle.jpg" },
+    { id: 4, name: "강력한 일격", cost: 203, image: "heavy_strike.jpg" },
+    { id: 5, name: "달콤한 쿠키", cost: 30, image: "sweet_cookie.jpg" },
+    { id: 6, name: "신성한 회복", cost: 91, image: "holy_heal.jpg" },
+    { id: 7, name: "파인애플", cost: 0, image: "pineapple.jpg" },
+    { id: 8, name: "거대한 방패", cost: 112, image: "giant_shield.jpg" },
+    { id: 9, name: "솟구치는 힘", cost: 133, image: "rising_power.jpg" },
+    { id: 10, name: "솟구치는 마법", cost: 67, image: "rising_magic.jpg" },
+    { id: 11, name: "보물 발굴??", cost: 98, image: "treasure_hunt.jpg" }
 ];
 
-// 고정된 25장 테스트용 카드 더미 빌드 함수
 function createTestDeck() {
     const composition = [
         { name: "재빠른 공격", count: 8 },
@@ -58,14 +57,10 @@ function shuffle(array) {
     return array;
 }
 
-// 차례 시작 시 자동 처리 로직
 function processTurnStart(room, activePlayerId) {
     const p = room.players[activePlayerId];
-    
-    // 에너지 회복 및 한도 체크
     p.energy = Math.min(p.maxEnergy, p.energy + p.energyRegen);
     
-    // 차례 시작 시 지속 효과 처리 구역
     room.globalEffectHistory.forEach(effect => {
         if (effect.owner === activePlayerId) {
             if (effect.type === '솟구치는 힘') {
@@ -78,9 +73,7 @@ function processTurnStart(room, activePlayerId) {
         }
     });
 
-    // 기본 카드 3장 가져오기
     drawCards(p, 3);
-    
     room.phase = "main";
 }
 
@@ -130,19 +123,18 @@ io.on('connection', (socket) => {
                 playerIds: [p1, p2],
                 turn: p1,
                 phase: "main",
-                globalEffectHistory: [] // 기록 구조 (History Queue)
+                globalEffectHistory: []
             };
 
             rooms[roomId].playerIds.forEach(id => {
                 rooms[roomId].players[id].deck = createTestDeck();
-                drawCards(rooms[roomId].players[id], 4); // 시작 카드 4장
+                drawCards(rooms[roomId].players[id], 4);
             });
 
             socket.join(roomId);
             io.sockets.sockets.get(p1)?.join(roomId);
             io.sockets.sockets.get(p2)?.join(roomId);
 
-            // 첫 차례 처리 시작
             processTurnStart(rooms[roomId], p1);
 
             io.to(roomId).emit('gameStart', {
@@ -186,7 +178,6 @@ io.on('connection', (socket) => {
             case "재빠른 막기":
                 player.physDef += 31;
                 player.magDef += 23;
-                // 적용 시점의 정확한 증가 수치를 기록 구조에 저장
                 room.globalEffectHistory.push({ 
                     type: '임시_복합_방어', 
                     owner: socket.id, 
@@ -228,7 +219,6 @@ io.on('connection', (socket) => {
             case "거대한 방패":
                 let physBuff = Math.ceil(10 + (player.magPower * 2.0));
                 player.physDef += physBuff;
-                // 계산된 정확한 수치를 기록 구조에 보관
                 room.globalEffectHistory.push({ 
                     type: '임시_물리_방어', 
                     owner: socket.id, 
@@ -273,7 +263,6 @@ io.on('connection', (socket) => {
         const player = room.players[socket.id];
         const nextPlayerId = room.playerIds.find(id => id !== socket.id);
 
-        // 차례 종료에 따른 임시 증가치 원상 복구 처리
         room.globalEffectHistory = room.globalEffectHistory.filter(effect => {
             if (effect.target === socket.id) {
                 if (effect.type === '임시_복합_방어') {
@@ -289,7 +278,6 @@ io.on('connection', (socket) => {
             return true;
         });
 
-        // 보유 카드 수가 6장을 초과하는지 체크
         if (player.hand.length > 6) {
             room.phase = "discard";
             io.to(roomId).emit('mustDiscard', { gameState: room });

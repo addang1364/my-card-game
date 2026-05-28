@@ -1,34 +1,11 @@
 ---
-pid: 14464
+pid: 22632
 cwd: |
   C:\Users\round\.cursor\projects\empty-window
 ---
-PS C:\Users\round\.cursor\projects\empty-window> npm start
-npm : 이 시스템에서 스크립트를 실행할 수 없으므로 C:\Program Files\nodejs\npm.ps1 파일을 로드할 수 없습니다. 자세한 내용은 about_Execution_Policies(https://go.microsoft.com/fwlink/?LinkID=1 
-35170)를 참조하십시오.
-위치 줄:1 문자:1
-+ npm start
-+ ~~~
-    + CategoryInfo          : 보안 오류: (:) [], PSSecurityException
-    + FullyQualifiedErrorId : UnauthorizedAccess
-PS C:\Users\round\.cursor\projects\empty-window> node server.js
-서버가 포트 3000에서 작동 중입니다.
-유저 접속: ThUzJdbJ4tBQnbsFAAAB
-유저 접속: UI7YasXjeFGc6ydfAAAD
-유저 접속: qgGjF53o9N4w5OwuAAAF
-유저 접속: -arldDXoDhonxfNZAAAH
-PS C:\Users\round\.cursor\projects\empty-window> y
-y : 'y' 용어가 cmdlet, 함수, 스크립트 파일 또는 실행할 수 있는 프로그램 이름으로 인
-식되지 않습니다. 이름이 정확한지 확인하고 경로가 포함된 경우 경로가 올바른지 검증한
- 다음 다시 시도하십시오.
-위치 줄:1 문자:1
-+ y
-+ ~
-    + CategoryInfo          : ObjectNotFound: (y:String) [], CommandNotFoundExcept
-   ion
-    + FullyQualifiedErrorId : CommandNotFoundException
-
 PS C:\Users\round\.cursor\projects\empty-window> git add .
+>> git commit -m "AOS 기믹 다변화 및 기록 시스템 전면 업데이트"
+>> git push
 warning: in the working copy of 'mcps/cursor-app-control/INSTRUCTIONS.md', LF will be replaced by CRLF the next time Git touches it
 warning: in the working copy of 'mcps/cursor-app-control/SERVER_METADATA.json', LF will be replaced by CRLF the next time Git touches it
 warning: in the working copy of 'mcps/cursor-app-control/tools/create_project.json', LF will be replaced by CRLF the next time Git touches it
@@ -61,27 +38,23 @@ warning: in the working copy of 'mcps/cursor-ide-browser/tools/browser_take_scre
 warning: in the working copy of 'mcps/cursor-ide-browser/tools/browser_type.json', LF will be replaced by CRLF the next time Git touches it
 warning: in the working copy of 'terminals/1.txt', LF will be replaced by CRLF the next time Git touches it
 warning: in the working copy of 'terminals/2.txt', LF will be replaced by CRLF the next time Git touches it
-warning: in the working copy of 'terminals/3.txt', LF will be replaced by CRLF the next time Git touches it
-warning: in the working copy of 'terminals/4.txt', LF will be replaced by CRLF the next time Git touches it
-warning: in the working copy of 'terminals/5.txt', LF will be replaced by CRLF the next time Git touches it
-warning: in the working copy of 'terminals/6.txt', LF will be replaced by CRLF the next time Git touches it
-warning: in the working copy of 'terminals/7.txt', LF will be replaced by CRLF the next time Git touches it
-warning: in the working copy of 'terminals/8.txt', LF will be replaced by CRLF the next time Git touches it
-PS C:\Users\round\.cursor\projects\empty-window> git commit -m "AOS 카드 배틀 시스템 업데이트"
-[main f509043] AOS 카드 배틀 시스템 업데이트
- 12 files changed, 810 insertions(+), 968 deletions(-)
- create mode 100644 terminals/7.txt
- create mode 100644 terminals/8.txt
-PS C:\Users\round\.cursor\projects\empty-window> git push
-Enumerating objects: 29, done.
-Counting objects: 100% (29/29), done.
+[main 9a6fd1c] AOS 기믹 다변화 및 기록 시스템 전면 업데이트
+ 12 files changed, 491 insertions(+), 663 deletions(-)
+ delete mode 100644 terminals/3.txt
+ delete mode 100644 terminals/4.txt
+ delete mode 100644 terminals/5.txt
+ delete mode 100644 terminals/6.txt
+ delete mode 100644 terminals/7.txt
+ delete mode 100644 terminals/8.txt
+Enumerating objects: 19, done.
+Counting objects: 100% (19/19), done.
 Delta compression using up to 12 threads
-Compressing objects: 100% (16/16), done.
-Writing objects: 100% (16/16), 10.35 KiB | 2.59 MiB/s, done.
-Total 16 (delta 7), reused 0 (delta 0), pack-reused 0 (from 0)
-remote: Resolving deltas: 100% (7/7), completed with 7 local objects.
+Compressing objects: 100% (10/10), done.
+Writing objects: 100% (10/10), 7.53 KiB | 1.50 MiB/s, done.
+Total 10 (delta 5), reused 0 (delta 0), pack-reused 0 (from 0)
+remote: Resolving deltas: 100% (5/5), completed with 5 local objects.
 To https://github.com/addang1364/my-card-game.git
-   e5ded58..f509043  main -> main
+   f509043..9a6fd1c  main -> main
 PS C:\Users\round\.cursor\projects\empty-window> 
  *  History restored 
 
