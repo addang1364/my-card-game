@@ -242,10 +242,10 @@ function updateUI(gameState) {
     });
 }
 
-// 드래그 앤 드롭 구역
+// 드래그 앤 드롭 구역 (오류가 났던 부분 완벽 수정 완료)
 const dropZone = document.getElementById('drop-zone');
 dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('hover'); });
-dropZone.addEventListener('dragleave', () => dropZone.classList.remove('hover'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('hover'));
 dropZone.addEventListener('drop', e => {
     e.preventDefault();
     dropZone.classList.remove('hover');
@@ -284,85 +284,4 @@ document.getElementById('end-turn-btn').addEventListener('click', () => {
 
 // 모달창 렌더링 로직
 const modal = document.getElementById('list-modal');
-const modalGrid = document.getElementById('modal-grid');
-const modalPreview = document.getElementById('modal-preview');
-const confirmBtn = document.getElementById('modal-confirm-btn');
-
-function openModal(title, cardArray, shuffle = false, mode = 'view') {
-    modalMode = mode;
-    selectedDiscardIds = [];
-    document.getElementById('modal-title').innerText = title;
-    modalGrid.innerHTML = "";
-    modalPreview.innerHTML = "<p style='color:#8b949e; margin-top:50px;'>카드를 선택하세요</p>";
-    
-    if(mode === 'magicSelect') { confirmBtn.classList.remove('hidden'); confirmBtn.innerText = "2장 선택 완료"; confirmBtn.disabled = true; }
-    else if(mode === 'standby') { confirmBtn.classList.remove('hidden'); confirmBtn.innerText = "패로 가져오기"; confirmBtn.disabled = true; }
-    else { confirmBtn.classList.add('hidden'); }
-
-    let displayArray = [...cardArray];
-    if (shuffle) displayArray.sort(() => Math.random() - 0.5);
-
-    const me = localGameState.players[myId];
-    const enemy = localGameState.players[localGameState.playerIds.find(id => id !== myId)];
-
-    displayArray.forEach(card => {
-        const el = document.createElement('div');
-        el.className = 'card-frame grid-card';
-        el.innerHTML = `<div class="card-cost-badge">${card.cost}</div><div class="card-name-label">${card.name}</div><div class="card-effect-text" style="font-size:10px;">${colorize(card.textTemplate)}</div>`;
-        
-        el.addEventListener('click', () => {
-            modalPreview.innerHTML = `
-                <div class="card-frame" style="width:200px; height:280px; transform:none; margin:auto; cursor:default;">
-                    <div class="card-cost-badge" style="width:36px; height:36px; font-size:16px; top:-12px; left:-12px;">${card.cost}</div>
-                    <div class="card-name-label" style="font-size:18px; margin-top:15px; color:#58a6ff;">${card.name}</div>
-                    <div class="card-effect-text" style="font-size:13px; margin-top:20px;">${getDynamicText(card, me, enemy, true)}</div>
-                </div>
-            `;
-            
-            if(mode === 'magicSelect') {
-                if (el.classList.contains('selected')) {
-                    el.classList.remove('selected');
-                    selectedDiscardIds = selectedDiscardIds.filter(id => id !== card.instanceId);
-                } else if (selectedDiscardIds.length < 2) {
-                    el.classList.add('selected');
-                    selectedDiscardIds.push(card.instanceId);
-                }
-                confirmBtn.disabled = (selectedDiscardIds.length !== 2);
-            } 
-            else if(mode === 'standby') {
-                document.querySelectorAll('.grid-card').forEach(c => c.classList.remove('selected'));
-                el.classList.add('selected');
-                selectedDiscardIds = [card.instanceId];
-                confirmBtn.disabled = false;
-            }
-        });
-        modalGrid.appendChild(el);
-    });
-    modal.classList.remove('hidden');
-}
-
-confirmBtn.addEventListener('click', () => {
-    if(modalMode === 'magicSelect' && selectedDiscardIds.length === 2) {
-        isMyTurnProcessing = true;
-        socket.emit('playCard', { roomId: currentRoomId, instanceId: pendingMagicCardId, discardTargetIds: selectedDiscardIds });
-        setTimeout(() => { isMyTurnProcessing = false; }, 1000);
-        modal.classList.add('hidden');
-    }
-    else if (modalMode === 'standby' && selectedDiscardIds.length === 1) {
-        socket.emit('pullStandbyCard', { roomId: currentRoomId, instanceId: selectedDiscardIds[0] });
-        modal.classList.add('hidden');
-    }
-});
-
-document.getElementById('my-deck-btn').addEventListener('click', () => openModal('나의 덱 목록 (무작위 정렬)', localGameState.players[myId].deck, true, 'view'));
-document.getElementById('my-grave-btn').addEventListener('click', () => openModal('나의 카드 무덤', localGameState.players[myId].graveyard, false, 'view'));
-document.getElementById('enemy-grave-btn').addEventListener('click', () => openModal('상대 카드 무덤', localGameState.players[localGameState.playerIds.find(id=>id!==myId)].graveyard, false, 'view'));
-document.getElementById('enemy-standby-btn').addEventListener('click', () => openModal('상대 스탠바이 목록', localGameState.players[localGameState.playerIds.find(id=>id!==myId)].standbyDeck, false, 'view'));
-
-document.getElementById('my-standby-btn').addEventListener('click', () => {
-    const btn = document.getElementById('my-standby-btn');
-    if(btn.classList.contains('disabled')) return;
-    openModal('스탠바이 카드 (1장 선택 가능)', localGameState.players[myId].standbyDeck, false, 'standby');
-});
-
-document.getElementById('modal-close').addEventListener('click', () => modal.classList.add('hidden'));
+const modalGrid = document.getElementById
