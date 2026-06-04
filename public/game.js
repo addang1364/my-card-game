@@ -3,33 +3,36 @@ const socket = io();
 let currentRoomId = null;
 let myId = null;
 let localGameState = null;
+let isMyTurnProcessing = false;
+let discardRequiredCount = 0;
 
 const lobbyScreen = document.getElementById('lobby-screen');
 const gameScreen = document.getElementById('game-screen');
 const matchBtn = document.getElementById('match-btn');
-const statusText = document.getElementById('status-text');
-const myHand = document.getElementById('my-hand');
-const dropZone = document.getElementById('drop-zone');
-const endTurnBtn = document.getElementById('end-turn-btn');
-const turnBadge = document.getElementById('turn-badge');
 const toastLayer = document.getElementById('toast-layer');
+const bannerLayer = document.getElementById('banner-layer');
+const bannerText = document.getElementById('banner-text');
 
 function showToast(message) {
     const toast = document.createElement('div');
     toast.className = 'toast-msg';
     toast.innerText = message;
     toastLayer.appendChild(toast);
-    setTimeout(() => {
-        toast.remove();
-    }, 3000);
+    setTimeout(() => toast.remove(), 3000);
 }
 
-matchBtn.addEventListener('click', () => {
-    socket.emit('findMatch');
-});
+function showBanner(text, duration = 1000) {
+    bannerText.innerText = text;
+    bannerLayer.classList.remove('hidden');
+    setTimeout(() => {
+        bannerLayer.classList.add('hidden');
+    }, duration);
+}
+
+matchBtn.addEventListener('click', () => socket.emit('findMatch'));
 
 socket.on('matching', () => {
-    statusText.innerText = "상태: 참여 대상을 찾고 있습니다...";
+    document.getElementById('status-text').innerText = "매칭 중...";
     matchBtn.disabled = true;
 });
 
@@ -38,250 +41,242 @@ socket.on('gameStart', ({ roomId, gameState }) => {
     myId = socket.id;
     lobbyScreen.classList.add('hidden');
     gameScreen.classList.remove('hidden');
-    showToast("조율 완료. 배틀을 시작합니다.");
     updateUI(gameState);
 });
 
-socket.on('updateState', ({ gameState }) => {
-    updateUI(gameState);
-});
+socket.on('updateState', ({ gameState }) => { updateUI(gameState); });
+socket.on('errorMessage', ({ message }) => { showToast(message); });
 
-socket.on('errorMessage', ({ message }) => {
-    showToast(message);
-});
-
-socket.on('cardPlayed', ({ gameState, lastPlayedCard, playerWhoPlayed }) => {
-    updateUI(gameState);
+socket.on('phaseBanner', ({ type }) => {
+    const texts = {
+        'TURN_CHANGE': "Turn Change!!",
+        'START_PHASE': localGameState.turn === myId ? "내 턴 시작 - 카드 효과 처리 진행" : "상대 턴 시작 - 카드 효과 처리 진행",
+        'MAIN_PHASE': localGameState.turn === myId ? "카드를 사용하세요!!" : "상대방이 카드를 사용 중입니다",
+        'END_PHASE': localGameState.turn === myId ? "내 턴 종료 - 카드 효과 처리 진행" : "상대 턴 종료 - 카드 효과 처리 진행",
+        'TURN_OVER': "Turn Over"
+    };
+    if (texts[type]) showBanner(texts[type]);
     
-    const view = document.getElementById('recent-card-view');
-    const textNode = document.getElementById('drop-zone-text');
-    
-    textNode.classList.add('hidden');
-    view.classList.remove('hidden');
-    view.innerHTML = `
-        <div class="card-frame" style="transform:none; pointer-events:none; margin:auto;">
-            <div class="card-cost-badge">${lastPlayedCard.cost}</div>
-            <div class="card-name-label">${lastPlayedCard.name}</div>
-            <img src="/${lastPlayedCard.image}" class="card-image-real" alt="${lastPlayedCard.name}">
-            <div class="card-effect-text">발동</div>
-        </div>
-        <p style="font-size:11px; margin-top:5px; text-align:center;">${playerWhoPlayed === myId ? '내가' : '상대가'} 사용</p>
-    `;
-
-    setTimeout(() => {
-        view.classList.add('hidden');
-        textNode.classList.remove('hidden');
-    }, 2000);
+    // UI 상태 갱신
+    if (type === 'MAIN_PHASE' && localGameState.turn === myId) {
+        document.getElementById('end-turn-btn').classList.remove('hidden');
+        document.getElementById('drop-zone-text').innerHTML = "카드를 이곳에 사용하세요";
+    } else {
+        document.getElementById('end-turn-btn').classList.add('hidden');
+    }
 });
 
-socket.on('mustDiscard', ({ gameState }) => {
-    updateUI(gameState);
-    turnBadge.innerText = "초과 카드 분해 필요 (6장 이하로)";
-    turnBadge.style.background = "#da3633";
-    turnBadge.style.color = "#fff";
-    showToast("보유 카드가 허용치를 초과했습니다. 필요 없는 카드를 선택하여 반환하세요.");
+socket.on('requireDiscard', ({ count }) => {
+    discardRequiredCount = count;
+    document.getElementById('drop-zone-text').innerHTML = `<span style="color:#f85149; font-weight:bold;">패가 초과되었습니다!<br>${count}장을 이곳에 버려주세요.</span>`;
 });
 
 socket.on('gameOver', ({ winner, disconnect }) => {
-    if (disconnect) {
-        showToast("상대방의 연결이 차단되어 승리했습니다.");
-    } else if (winner === myId) {
-        showToast("승리했습니다! 상대의 체력을 충족 조건 이하로 하락시켰습니다.");
-    } else {
-        showToast("체력이 모두 고갈되어 차단되었습니다.");
-    }
     setTimeout(() => {
-        location.reload();
-    }, 4000);
+        if (disconnect) showBanner("상대방 연결 끊김! 승리!", 4000);
+        else if (winner === myId) showBanner("승 리 !!", 4000);
+        else showBanner("패 배 ..", 4000);
+        setTimeout(() => location.reload(), 4000);
+    }, 1000);
 });
+
+// 동적 텍스트 계산기 (서버 공식과 동일)
+function getDynamicText(card, me, enemy, isHovered) {
+    let dmgBonus = me.bonusDamage || 0;
+    let reduc = enemy.damageReduction || 0;
+    
+    function calc(rawBase, rawAdd = 0, conditionMet = false) {
+        let final1 = Math.max(0, (rawBase + dmgBonus) - reduc);
+        let leftReduc = Math.max(0, reduc - (rawBase + dmgBonus));
+        let final2 = Math.max(0, rawAdd - leftReduc);
+        
+        let display = final1.toString();
+        if (conditionMet && rawAdd > 0) display += ` + ${final2}`;
+        return display;
+    }
+
+    switch(card.name) {
+        case "강력한 내려찍기":
+            let d1 = me.strength * 20;
+            return isHovered ? `상대에게 ${calc(d1)}(힘 X 20) 피해를 준다.` : `상대에게 ${calc(d1)} 피해를 준다.`;
+        case "강력한 마검 휘두르기":
+            let d2 = 80 + (me.strength * 5) + (me.magic * 5);
+            return isHovered ? `상대에게 ${calc(d2)}(80 + 힘 X 5 + 마력 X 5) 피해를 준다.` : `상대에게 ${calc(d2)} 피해를 준다.`;
+        case "불굴의 막아내기":
+            let s1 = me.endurance * 18;
+            return isHovered ? `자신이 다음 상대 턴이 종료할 때 까지 ${s1}(인내 X 18) 보호막을 얻는다.` : `자신이 다음 상대 턴이 종료할 때 까지 ${s1} 보호막을 얻는다.`;
+        case "불굴의 받아치기":
+            let s2 = 60 + (me.endurance * 7);
+            let p1 = `자신이 다음 상대 턴이 종료할 때 까지 ${s2}(60 + 인내 X 7) 보호막을 얻는다.`;
+            if (!isHovered) p1 = `자신이 다음 상대 턴이 종료할 때 까지 ${s2} 보호막을 얻는다.`;
+            return p1 + ` 민첩이 8 이상이면 상대에게 ${calc(80)} 피해를 준다.`;
+        case "초집중 목표 포착":
+            return isHovered ? `상대에게 ${calc(120, 60, me.focus >= 8)}(120 + 집중 8 이상이면 60) 피해를 준다.` : `상대에게 ${calc(120, 60, me.focus >= 8)} 피해를 준다.`;
+        case "초집중 공격 흘려내기":
+            let s3 = me.focus * 13;
+            let p2 = isHovered ? `자신이 다음 상대 턴이 종료할 때 까지 ${s3}(집중 X 13) 보호막을 얻는다.` : `자신이 다음 상대 턴이 종료할 때 까지 ${s3} 보호막을 얻는다.`;
+            return p2 + ` 인내가 8 이상이면 덱에서 카드를 2장 뽑는다.`;
+        case "기민한 빈틈 노리기":
+            return isHovered ? `상대에게 ${calc(me.agility * 16)}(민첩 X 16) 피해를 준다. 덱에서 카드를 1장 뽑는다.` : `상대에게 ${calc(me.agility * 16)} 피해를 준다. 덱에서 카드를 1장 뽑는다.`;
+        case "기민한 치고 빠지기":
+            let r1 = 10 + (me.agility * 1);
+            let p3 = isHovered ? `다음 상대 턴이 종료할 때 까지 자신이 받는 피해 감소가 ${r1}(10 + 민첩 X 1) 증가한다.` : `다음 상대 턴이 종료할 때 까지 자신이 받는 피해 감소가 ${r1} 증가한다.`;
+            return p3 + ` 힘이 8 이상이면 상대에게 ${calc(87)} 피해를 준다.`;
+        case "엄청난 불의 방패":
+            let d3 = 60 + (me.magic * 7);
+            return isHovered ? `상대에게 ${calc(d3)}(60 + 마력 X 7) 피해를 준다. 다음 상대 턴이 종료할 때 까지 자신이 받는 피해 감소가 15 증가한다.` : `상대에게 ${calc(d3)} 피해를 준다. 다음 상대 턴이 종료할 때 까지 자신이 받는 피해 감소가 15 증가한다.`;
+        case "엄청난 마력 집중":
+            let d4 = (me.magic * 15) + (me.focus * 8);
+            return isHovered ? `상대에게 ${calc(d4)}(마력 X 15 + 집중 X 8) 피해를 준다.` : `상대에게 ${calc(d4)} 피해를 준다.`;
+        case "재빠른 일격": return `상대에게 ${calc(34)} 피해를 준다. 힘이 2 증가한다.`;
+        case "재빠른 베어가르기": return `상대에게 ${calc(73)} 피해를 준다. 힘이 5 이상이면 인내가 3 증가한다.`;
+        case "굳건한 타격": return `상대에게 ${calc(28)} 피해를 준다. 인내가 1, 힘이 1 증가한다.`;
+        case "굳건한 방패 밀쳐내기": return `상대에게 ${calc(90)} 피해를 준다. 인내가 5 이상이면 집중이 3 증가한다.`;
+        case "침착한 공격": return `상대에게 ${calc(29)} 피해를 준다. 집중이 2 증가한다.`;
+        case "침착한 사격": return `상대에게 ${calc(40)} 피해를 준다. 힘이 1, 민첩이 1 증가한다.`;
+        case "침착한 집중 사격": return `상대에게 ${calc(81)} 피해를 준다. 집중이 5 이상이면 민첩이 3 증가한다.`;
+        case "신속한 찌르기": return `상대에게 ${calc(38)} 피해를 준다. 민첩이 1, 마력이 1 증가한다.`;
+        case "신속한 연속 공격": return `상대에게 ${calc(78)} 피해를 준다. 민첩이 5 이상이면 힘이 3 증가한다.`;
+        case "신비로운 마법": return `상대에게 ${calc(32)} 피해를 준다. 마력이 2 증가한다.`;
+        case "신비로운 마법 폭주": return `상대에게 ${calc(85)} 피해를 준다. 마력이 5 이상이면 마력이 3 증가한다.`;
+        default: return card.textTemplate;
+    }
+}
 
 function updateUI(gameState) {
     localGameState = gameState;
     const enemyId = gameState.playerIds.find(id => id !== myId);
-    
     const me = gameState.players[myId];
     const enemy = gameState.players[enemyId];
 
-    document.getElementById('my-hp-text').innerText = `${me.hp} / ${me.maxHp}`;
-    document.getElementById('my-hp-bar').style.width = `${(me.hp / me.maxHp) * 100}%`;
-    document.getElementById('my-energy-text').innerText = `${me.energy} / ${me.maxEnergy}`;
-    document.getElementById('my-energy-bar').style.width = `${(me.energy / me.maxEnergy) * 100}%`;
-    
-    document.getElementById('my-atk').innerText = me.physAtk;
-    document.getElementById('my-power').innerText = me.magPower;
-    document.getElementById('my-pdef').innerText = me.physDef;
-    document.getElementById('my-mdef').innerText = me.magDef;
+    // 스탯 바 업데이트
+    document.getElementById('my-hp-text').innerText = `${me.hp} / 700`;
+    document.getElementById('my-hp-bar').style.width = `${(me.hp / 700) * 100}%`;
+    document.getElementById('my-energy-text').innerText = `${me.energy} / 600`;
+    document.getElementById('my-energy-bar').style.width = `${(me.energy / 600) * 100}%`;
+
+    document.getElementById('enemy-hp-text').innerText = `${enemy.hp} / 700`;
+    document.getElementById('enemy-hp-bar').style.width = `${(enemy.hp / 700) * 100}%`;
+
+    // 신규 RPG 스탯 업데이트
+    document.getElementById('stat-str').innerText = me.strength;
+    document.getElementById('stat-end').innerText = me.endurance;
+    document.getElementById('stat-foc').innerText = me.focus;
+    document.getElementById('stat-agi').innerText = me.agility;
+    document.getElementById('stat-mag').innerText = me.magic;
+    document.getElementById('stat-add-dmg').innerText = me.bonusDamage;
+    document.getElementById('stat-red-dmg').innerText = me.damageReduction;
+    document.getElementById('stat-regen').innerText = me.energyRegen;
+
     document.getElementById('my-deck-count').innerText = me.deck.length;
-
-    document.getElementById('enemy-hp-text').innerText = `${enemy.hp} / ${enemy.maxHp}`;
-    document.getElementById('enemy-hp-bar').style.width = `${(enemy.hp / enemy.maxHp) * 100}%`;
-    document.getElementById('enemy-energy-text').innerText = `${enemy.energy} / ${enemy.maxEnergy}`;
-    document.getElementById('enemy-energy-bar').style.width = `${(enemy.energy / enemy.maxEnergy) * 100}%`;
-    
-    document.getElementById('enemy-atk').innerText = enemy.physAtk;
-    document.getElementById('enemy-power').innerText = enemy.magPower;
-    document.getElementById('enemy-pdef').innerText = enemy.physDef;
-    document.getElementById('enemy-mdef').innerText = enemy.magDef;
-    document.getElementById('enemy-hand-count').innerText = enemy.hand.length;
+    document.getElementById('my-grave-count').innerText = me.graveyard.length;
     document.getElementById('enemy-deck-count').innerText = enemy.deck.length;
+    document.getElementById('enemy-grave-count').innerText = enemy.graveyard.length;
 
-    const myPhysPercent = Math.ceil((100 / (100 + me.physDef)) * 100);
-    const myMagPercent = Math.ceil((100 / (100 + me.magDef)) * 100);
-    const enemyPhysPercent = Math.ceil((100 / (100 + enemy.physDef)) * 100);
-    const enemyMagPercent = Math.ceil((100 / (100 + enemy.magDef)) * 100);
-
-    document.getElementById('my-pdef-box').title = `받는 물리 피해: ${myPhysPercent}% (감소율: ${100 - myPhysPercent}%)`;
-    document.getElementById('my-mdef-box').title = `받는 마법 피해: ${myMagPercent}% (감소율: ${100 - myMagPercent}%)`;
-    document.getElementById('enemy-pdef-box').title = `받는 물리 피해: ${enemyPhysPercent}% (감소율: ${100 - enemyPhysPercent}%)`;
-    document.getElementById('enemy-mdef-box').title = `받는 마법 피해: ${enemyMagPercent}% (감소율: ${100 - enemyMagPercent}%)`;
-
-    if (gameState.turn === myId && gameState.phase === "main") {
-        endTurnBtn.classList.remove('hidden');
-        turnBadge.innerText = "내 차례";
-        turnBadge.style.background = "#238636";
-        turnBadge.style.color = "#fff";
-    } else if (gameState.turn === myId && gameState.phase === "discard") {
-        endTurnBtn.classList.add('hidden');
-    } else {
-        endTurnBtn.classList.add('hidden');
-        turnBadge.innerText = "상대방 차례";
-        turnBadge.style.background = "#30363d";
-        turnBadge.style.color = "#8b949e";
+    // 보호막 렌더링 (LIFO 시각화: 가장 뒤에 있는 배열 요소가 가장 최근)
+    function renderShields(targetId, arr) {
+        const container = document.getElementById(targetId);
+        container.innerHTML = "";
+        arr.forEach(s => {
+            const badge = document.createElement('div');
+            badge.className = 'shield-badge';
+            badge.innerText = s.amount;
+            container.appendChild(badge);
+        });
     }
+    renderShields('my-shields', me.shields);
+    renderShields('enemy-shields', enemy.shields);
 
+    // 내 손패 렌더링
+    const myHand = document.getElementById('my-hand');
     myHand.innerHTML = "";
-    me.hand.forEach(card => {
+    me.hand.forEach((card, index) => {
         const cardEl = document.createElement('div');
-        
-        if (me.energy >= card.cost) {
-            cardEl.className = 'card-frame card-playable';
-        } else {
-            cardEl.className = 'card-frame card-unplayable';
-        }
-        
+        cardEl.className = `card-frame ${me.energy >= card.cost ? 'card-playable' : 'card-unplayable'}`;
+        cardEl.style.zIndex = index;
         cardEl.draggable = true;
         cardEl.dataset.instanceId = card.instanceId;
-
-        let cleanText = "";
-        let hoverText = "";
-
-        if (card.name === "재빠른 공격") {
-            let total = Math.ceil(86 + (me.physAtk * 0.9));
-            cleanText = `물리 피해: ${total}`;
-            hoverText = `공식: 86 + (물리 공격력 90%) = ${total} 물리 피해`;
-        } else if (card.name === "강력한 일격") {
-            let total = Math.ceil((me.physAtk * 1.25) + (me.magPower * 1.5));
-            cleanText = `마법 피해: ${total}`;
-            hoverText = `공식: (물리 공격력 125%) + (마력 150%) = ${total} 마법 피해`;
-        } else if (card.name === "재빠른 막기") {
-            cleanText = `물리 방어 +31 / 마법 방어 +23 (차례 종료시 소멸)`;
-            hoverText = cleanText;
-        } else if (card.name === "거대한 방패") {
-            let total = Math.ceil(10 + (me.magPower * 2.0));
-            cleanText = `물리 방어 +${total} (차례 종료시 소멸)`;
-            hoverText = `공식: 10 + (마력 200%) = +${total} 물리 방어`;
-        } else if (card.name === "자연의 순환") {
-            cleanText = `에너지 재생 증가: +41`;
-            hoverText = cleanText;
-        } else if (card.name === "달콤한 쿠키") {
-            cleanText = `카드 2장 추가 획득`;
-            hoverText = cleanText;
-        } else if (card.name === "신성한 회복") {
-            let total = Math.ceil(30 + (me.magPower * 0.65));
-            cleanText = `체력 회복: +${total}`;
-            hoverText = `공식: 30 + (마력 65%) = +${total} 회복`;
-        } else if (card.name === "파인애플") {
-            cleanText = `에너지 회복: +130`;
-            hoverText = cleanText;
-        } else if (card.name === "솟구치는 힘") {
-            cleanText = `매 차례 시작할 때 물리 공격력 +3 증가`;
-            hoverText = cleanText;
-        } else if (card.name === "솟구치는 마법") {
-            cleanText = `매 차례 시작할 때 마력 +5 증가`;
-            hoverText = cleanText;
-        } else if (card.name === "보물 발굴??") {
-            cleanText = `매 차례 시작할 때 추가 카드 +1장 획득`;
-            hoverText = cleanText;
-        }
 
         cardEl.innerHTML = `
             <div class="card-cost-badge">${card.cost}</div>
             <div class="card-name-label">${card.name}</div>
-            <img src="/${card.image}" class="card-image-real" alt="${card.name}">
-            <div id="text-${card.instanceId}" class="card-effect-text">${cleanText}</div>
+            <div id="text-${card.instanceId}" class="card-effect-text">${getDynamicText(card, me, enemy, false)}</div>
         `;
 
         cardEl.addEventListener('mouseenter', () => {
-            document.getElementById(`text-${card.instanceId}`).innerText = hoverText;
+            document.getElementById(`text-${card.instanceId}`).innerText = getDynamicText(card, me, enemy, true);
         });
         cardEl.addEventListener('mouseleave', () => {
-            document.getElementById(`text-${card.instanceId}`).innerText = cleanText;
+            document.getElementById(`text-${card.instanceId}`).innerText = getDynamicText(card, me, enemy, false);
         });
 
-        cardEl.addEventListener('dragstart', (e) => {
-            e.dataTransfer.setData('text/plain', card.instanceId);
-        });
-
-        cardEl.addEventListener('click', () => {
-            if (localGameState && localGameState.turn === myId && localGameState.phase === "discard") {
-                socket.emit('discardCard', { roomId: currentRoomId, instanceId: card.instanceId });
-            }
-        });
-
+        cardEl.addEventListener('dragstart', (e) => e.dataTransfer.setData('text/plain', card.instanceId));
         myHand.appendChild(cardEl);
     });
 }
 
-dropZone.addEventListener('dragover', (e) => {
-    e.preventDefault();
-    dropZone.classList.add('hover');
-});
-
-dropZone.addEventListener('dragleave', () => {
-    dropZone.classList.remove('hover');
-});
-
-dropZone.addEventListener('drop', (e) => {
+// 드래그 앤 드롭 구역 (사용 및 버리기 통합)
+const dropZone = document.getElementById('drop-zone');
+dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('hover'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('hover'));
+dropZone.addEventListener('drop', e => {
     e.preventDefault();
     dropZone.classList.remove('hover');
-    
-    if (!localGameState || localGameState.turn !== myId || localGameState.phase !== "main") {
-        showToast("사용 가능한 타이밍이 아닙니다.");
-        return;
-    }
-
     const instanceId = parseInt(e.dataTransfer.getData('text/plain'));
-    socket.emit('playCard', { roomId: currentRoomId, instanceId: instanceId });
-});
 
-endTurnBtn.addEventListener('click', () => {
-    if (currentRoomId) {
-        socket.emit('endTurn', { roomId: currentRoomId });
-    }
-});
-
-function openGraveyard(target) {
-    if (!localGameState) return;
-    const targetId = target === 'my' ? myId : localGameState.playerIds.find(id => id !== myId);
-    const p = localGameState.players[targetId];
-
-    document.getElementById('grave-title').innerText = `${target === 'my' ? '내' : '상대'} 사용된 카드 목록 (${p.graveyard.length}장)`;
-    const listEl = document.getElementById('grave-list');
-    listEl.innerHTML = "";
-
-    if (p.graveyard.length === 0) {
-        listEl.innerHTML = "<p style='color:#8b949e; font-size:12px;'>기록이 존재하지 않습니다.</p>";
+    if (discardRequiredCount > 0) {
+        socket.emit('discardCard', { roomId: currentRoomId, instanceId });
+        discardRequiredCount--;
+        if(discardRequiredCount <= 0) {
+            document.getElementById('drop-zone-text').innerHTML = "카드를 이곳에 사용하세요";
+        } else {
+            document.getElementById('drop-zone-text').innerHTML = `<span style="color:#f85149; font-weight:bold;">패가 초과되었습니다!<br>${discardRequiredCount}장을 이곳에 버려주세요.</span>`;
+        }
     } else {
-        p.graveyard.forEach(card => {
-            const item = document.createElement('div');
-            item.className = 'grave-item';
-            item.innerText = `[비용: ${card.cost}] ${card.name}`;
-            listEl.appendChild(item);
-        });
+        if (localGameState.turn === myId && localGameState.phase === "main" && !isMyTurnProcessing) {
+            isMyTurnProcessing = true;
+            socket.emit('playCard', { roomId: currentRoomId, instanceId });
+            setTimeout(() => { isMyTurnProcessing = false; }, 1000); // 1초 쿨타임
+        }
     }
-    document.getElementById('grave-modal').classList.remove('hidden');
+});
+
+document.getElementById('end-turn-btn').addEventListener('click', () => {
+    socket.emit('endTurn', { roomId: currentRoomId });
+    document.getElementById('end-turn-btn').classList.add('hidden');
+});
+
+// 덱 / 무덤 모달창 로직
+const modal = document.getElementById('list-modal');
+const modalGrid = document.getElementById('modal-grid');
+const modalPreview = document.getElementById('modal-preview');
+
+function openModal(title, cardArray, shuffle = false) {
+    document.getElementById('modal-title').innerText = title;
+    modalGrid.innerHTML = "";
+    modalPreview.innerHTML = "<p style='color:#8b949e; margin-top:50px;'>카드를 선택하세요</p>";
+    
+    let displayArray = [...cardArray];
+    if (shuffle) displayArray.sort(() => Math.random() - 0.5);
+
+    displayArray.forEach(card => {
+        const el = document.createElement('div');
+        el.className = 'card-frame grid-card';
+        el.innerHTML = `<div class="card-cost-badge">${card.cost}</div><div class="card-name-label">${card.name}</div><div class="card-effect-text" style="font-size:8px;">${card.textTemplate}</div>`;
+        el.addEventListener('click', () => {
+            modalPreview.innerHTML = `
+                <div class="card-frame" style="width:200px; height:280px; transform:none; margin:auto; cursor:default;">
+                    <div class="card-cost-badge" style="width:36px; height:36px; font-size:16px; top:-12px; left:-12px;">${card.cost}</div>
+                    <div class="card-name-label" style="font-size:18px; margin-top:15px;">${card.name}</div>
+                    <div class="card-effect-text" style="font-size:13px; margin-top:20px;">${card.textTemplate}</div>
+                </div>
+            `;
+        });
+        modalGrid.appendChild(el);
+    });
+    modal.classList.remove('hidden');
 }
 
-function closeGraveyard() {
-    document.getElementById('grave-modal').classList.add('hidden');
-}
+document.getElementById('my-deck-btn').addEventListener('click', () => openModal('나의 덱 목록 (무작위 정렬)', localGameState.players[myId].deck, true));
+document.getElementById('my-grave-btn').addEventListener('click', () => openModal('나의 카드 무덤', localGameState.players[myId].graveyard, false));
+document.getElementById('modal-close').addEventListener('click', () => modal.classList.add('hidden'));

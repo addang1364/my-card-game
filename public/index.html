@@ -2,85 +2,97 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>1v1 카드 배틀</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RPG Card Battle</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div id="toast-layer"></div>
+    <div id="banner-layer" class="hidden"><h1 id="banner-text"></h1></div>
 
     <div id="lobby-screen">
-        <h1 class="game-title">1v1 카드 배틀</h1>
-        <button id="match-btn">참여하기</button>
-        <p id="status-text">상태: 대기 중</p>
+        <h1 class="game-title">진화된 배틀 아레나</h1>
+        <button id="match-btn">전투 참가</button>
+        <p id="status-text"></p>
     </div>
 
     <div id="game-screen" class="hidden">
-        <div id="enemy-area" class="player-panel">
-            <h2 class="panel-title">상대 플레이어</h2>
-            <div class="stat-bars">
-                <div class="bar-container hp-container">
-                    <div id="enemy-hp-bar" class="bar hp-bar"></div>
-                    <span id="enemy-hp-text" class="bar-text">2000 / 2000</span>
+        <!-- 상대방 영역 -->
+        <div id="enemy-area" class="player-zone">
+            <div class="stats-panel">
+                <div class="panel-header"><span class="panel-title">상대방</span></div>
+                <div class="stat-bars">
+                    <div class="shield-container" id="enemy-shields"></div>
+                    <div class="bar-container hp-bar-container">
+                        <div id="enemy-hp-bar" class="bar hp-bar"></div>
+                        <div id="enemy-hp-text" class="bar-text">700 / 700</div>
+                    </div>
                 </div>
-                <div class="bar-container energy-container">
-                    <div id="enemy-energy-bar" class="bar energy-bar"></div>
-                    <span id="enemy-energy-text" class="bar-text">600 / 600</span>
+                <div class="deck-grave-info">
+                    <span id="enemy-deck-btn">덱: <span id="enemy-deck-count">0</span>장</span>
+                    <span id="enemy-grave-btn">무덤: <span id="enemy-grave-count">0</span>장</span>
                 </div>
-            </div>
-            <div class="sub-stats">
-                <span>물리 피해 공격력: <b id="enemy-atk">63</b></span> | 
-                <span>마력: <b id="enemy-power">59</b></span> | 
-                <span class="hover-tip" id="enemy-pdef-box">물리 피해 방어력: <b id="enemy-pdef">40</b></span> | 
-                <span class="hover-tip" id="enemy-mdef-box">마법 피해 방어력: <b id="enemy-mdef">35</b></span>
-            </div>
-            <div class="card-counts">
-                <span>보유 카드: <b id="enemy-hand-count">0</b>장</span> | 
-                <span>남은 카드 더미: <b id="enemy-deck-count">0</b>장</span> | 
-                <button onclick="openGraveyard('enemy')">사용된 카드 더미 보기</button>
             </div>
         </div>
 
+        <!-- 중앙 전투 영역 -->
         <div id="battle-field">
             <div id="drop-zone">
-                <p id="drop-zone-text">이곳에 카드를 가져와 사용하세요</p>
+                <span id="drop-zone-text">카드를 이곳에 사용하세요<br>(초과 카드 버리기 겸용)</span>
                 <div id="recent-card-view" class="hidden"></div>
             </div>
+            <button id="end-turn-btn" class="hidden">차례 종료</button>
         </div>
 
-        <div id="my-area" class="player-panel">
-            <div class="panel-header">
-                <h2 class="panel-title">나</h2>
-                <button id="end-turn-btn" class="hidden">차례 종료</button>
-                <div id="turn-badge">대기 중</div>
-            </div>
-            <div class="stat-bars">
-                <div class="bar-container hp-container">
-                    <div id="my-hp-bar" class="bar hp-bar"></div>
-                    <span id="my-hp-text" class="bar-text">2000 / 2000</span>
+        <!-- 내 영역 -->
+        <div id="my-area" class="player-zone">
+            <div class="stats-panel my-stats-panel">
+                <div class="panel-header"><span class="panel-title">나의 스탯</span></div>
+                <div class="stat-bars">
+                    <div class="shield-container" id="my-shields"></div>
+                    <div class="bar-container hp-bar-container">
+                        <div id="my-hp-bar" class="bar hp-bar"></div>
+                        <div id="my-hp-text" class="bar-text">700 / 700</div>
+                    </div>
+                    <div class="bar-container energy-bar-container">
+                        <div id="my-energy-bar" class="bar energy-bar"></div>
+                        <div id="my-energy-text" class="bar-text">600 / 600</div>
+                    </div>
                 </div>
-                <div class="bar-container energy-container">
-                    <div id="my-energy-bar" class="bar energy-bar"></div>
-                    <span id="my-energy-text" class="bar-text">300 / 600</span>
+                <!-- 신규 스탯 목록 -->
+                <div class="rpg-stats">
+                    <div class="stat-item" data-tooltip="현재 자신의 힘 중첩입니다.">힘: <span id="stat-str">0</span></div>
+                    <div class="stat-item" data-tooltip="현재 자신의 인내 중첩입니다.">인내: <span id="stat-end">0</span></div>
+                    <div class="stat-item" data-tooltip="현재 자신의 집중 중첩입니다.">집중: <span id="stat-foc">0</span></div>
+                    <div class="stat-item" data-tooltip="현재 자신의 민첩 중첩입니다.">민첩: <span id="stat-agi">0</span></div>
+                    <div class="stat-item" data-tooltip="현재 자신의 마력 중첩입니다.">마력: <span id="stat-mag">0</span></div>
+                    <div class="stat-item" data-tooltip="상대에게 피해를 줄 때, 이 수치만큼 피해가 증가합니다.">공격시 추가 피해: <span id="stat-add-dmg">0</span></div>
+                    <div class="stat-item" data-tooltip="자신이 피해를 받을 때, 이 수치만큼 피해가 감소합니다.">피해 감소: <span id="stat-red-dmg">0</span></div>
+                    <div class="stat-item" data-tooltip="자신의 턴 시작시, 이 수치만큼 에너지가 재생됩니다.">에너지 재생: <span id="stat-regen">300</span></div>
+                </div>
+                <div class="deck-grave-info my-info">
+                    <div id="my-deck-btn" class="info-btn">덱 목록 (<span id="my-deck-count">0</span>)</div>
+                    <div id="my-grave-btn" class="info-btn">카드 무덤 (<span id="my-grave-count">0</span>)</div>
                 </div>
             </div>
-            <div class="sub-stats">
-                <span>물리 피해 공격력: <b id="my-atk">63</b></span> | 
-                <span>마력: <b id="my-power">59</b></span> | 
-                <span class="hover-tip" id="my-pdef-box">물리 피해 방어력: <b id="my-pdef">40</b></span> | 
-                <span class="hover-tip" id="my-mdef-box">마법 피해 방어력: <b id="my-mdef">35</b></span> | 
-                <span>남은 카드 더미: <b id="my-deck-count">0</b>장</span> | 
-                <button onclick="openGraveyard('my')">사용된 카드 더미 보기</button>
-            </div>
-
-            <div id="my-hand"></div>
+            
+            <div id="my-hand" class="hand-container"></div>
         </div>
     </div>
 
-    <div id="grave-modal" class="modal hidden">
-        <div class="modal-content">
-            <h3 id="grave-title">사용된 카드 목록</h3>
-            <div id="grave-list"></div>
-            <button onclick="closeGraveyard()">닫기</button>
+    <!-- 덱/무덤 확인용 투명 모달 -->
+    <div id="list-modal" class="modal hidden">
+        <div class="modal-wrapper">
+            <button id="modal-close" class="close-btn">X</button>
+            <div class="modal-left">
+                <div id="modal-preview" class="card-preview">
+                    <p style="color:#8b949e; margin-top:50px;">카드를 선택하세요</p>
+                </div>
+            </div>
+            <div class="modal-right">
+                <h2 id="modal-title" style="margin-bottom:15px; color:#58a6ff;">목록</h2>
+                <div id="modal-grid" class="card-grid"></div>
+            </div>
         </div>
     </div>
 

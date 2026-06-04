@@ -1,11 +1,9 @@
 ---
-pid: 22632
+pid: 11160
 cwd: |
   C:\Users\round\.cursor\projects\empty-window
 ---
 PS C:\Users\round\.cursor\projects\empty-window> git add .
->> git commit -m "AOS 기믹 다변화 및 기록 시스템 전면 업데이트"
->> git push
 warning: in the working copy of 'mcps/cursor-app-control/INSTRUCTIONS.md', LF will be replaced by CRLF the next time Git touches it
 warning: in the working copy of 'mcps/cursor-app-control/SERVER_METADATA.json', LF will be replaced by CRLF the next time Git touches it
 warning: in the working copy of 'mcps/cursor-app-control/tools/create_project.json', LF will be replaced by CRLF the next time Git touches it
@@ -38,23 +36,45 @@ warning: in the working copy of 'mcps/cursor-ide-browser/tools/browser_take_scre
 warning: in the working copy of 'mcps/cursor-ide-browser/tools/browser_type.json', LF will be replaced by CRLF the next time Git touches it
 warning: in the working copy of 'terminals/1.txt', LF will be replaced by CRLF the next time Git touches it
 warning: in the working copy of 'terminals/2.txt', LF will be replaced by CRLF the next time Git touches it
-[main 9a6fd1c] AOS 기믹 다변화 및 기록 시스템 전면 업데이트
- 12 files changed, 491 insertions(+), 663 deletions(-)
- delete mode 100644 terminals/3.txt
- delete mode 100644 terminals/4.txt
- delete mode 100644 terminals/5.txt
- delete mode 100644 terminals/6.txt
- delete mode 100644 terminals/7.txt
- delete mode 100644 terminals/8.txt
-Enumerating objects: 19, done.
-Counting objects: 100% (19/19), done.
+PS C:\Users\round\.cursor\projects\empty-window> git commit -m "카드 이미지 파일명 수정 및 적용"
+[main 4f92f89] 카드 이미지 파일명 수정 및 적용
+ 16 files changed, 47 insertions(+), 92 deletions(-)
+ create mode 100644 public/giant_shield.jpg
+ create mode 100644 public/heavy_strike.jpg
+ create mode 100644 public/holy_heal.jpg
+ create mode 100644 public/nature_cycle.jpg
+ create mode 100644 public/pineapple.jpg.jpg
+ create mode 100644 public/quick_attack.jpg
+ create mode 100644 public/quick_block.jpg
+ create mode 100644 public/rising_magic.jpg
+ create mode 100644 public/rising_power.jpg
+ create mode 100644 public/sweet_cookie.jpg
+ create mode 100644 public/treasure_hunt.jpg
+PS C:\Users\round\.cursor\projects\empty-window> git push
+Enumerating objects: 28, done.
+Counting objects: 100% (28/28), done.
 Delta compression using up to 12 threads
-Compressing objects: 100% (10/10), done.
-Writing objects: 100% (10/10), 7.53 KiB | 1.50 MiB/s, done.
-Total 10 (delta 5), reused 0 (delta 0), pack-reused 0 (from 0)
+Compressing objects: 100% (20/20), done.
+Writing objects: 100% (20/20), 134.37 KiB | 13.44 MiB/s, done.
+Total 20 (delta 5), reused 0 (delta 0), pack-reused 0 (from 0)
 remote: Resolving deltas: 100% (5/5), completed with 5 local objects.
 To https://github.com/addang1364/my-card-game.git
-   f509043..9a6fd1c  main -> main
+   9a6fd1c..4f92f89  main -> main
+PS C:\Users\round\.cursor\projects\empty-window> git add .
+PS C:\Users\round\.cursor\projects\empty-window> git commit -m "fix: 파인애플 이미지 파일명 오타 수정"
+[main 7321515] fix: 파인애플 이미지 파일명 오타 수정
+ 1 file changed, 0 insertions(+), 0 deletions(-)
+ rename public/{pineapple.jpg.jpg => pineapple.jpg} (100%)
+PS C:\Users\round\.cursor\projects\empty-window> git push
+Enumerating objects: 5, done.
+Counting objects: 100% (5/5), done.
+Delta compression using up to 12 threads
+Compressing objects: 100% (3/3), done.
+Writing objects: 100% (3/3), 340 bytes | 340.00 KiB/s, done.
+Total 3 (delta 2), reused 0 (delta 0), pack-reused 0 (from 0)
+remote: Resolving deltas: 100% (2/2), completed with 2 local objects.
+To https://github.com/addang1364/my-card-game.git
+   4f92f89..7321515  main -> main
 PS C:\Users\round\.cursor\projects\empty-window> 
  *  History restored 
 
