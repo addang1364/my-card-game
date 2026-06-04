@@ -11,38 +11,28 @@ let rooms = {};
 
 const delay = ms => new Promise(res => setTimeout(res, ms));
 
-// 신규 30종 카드 데이터베이스 (완벽 텍스트 매칭)
-const CARD_LIST = [
-    { name: "재빠른 일격", cost: 100, textTemplate: "상대에게 34 피해를 준다. 힘이 2 증가한다." },
-    { name: "재빠른 막기", cost: 100, textTemplate: "자신이 다음 상대 턴이 종료할 때 까지 26 보호막을 얻는다. 힘이 1, 민첩이 1 증가한다." },
-    { name: "재빠른 준비동작", cost: 100, textTemplate: "힘이 2, 집중이 1 증가한다." },
-    { name: "재빠른 베어가르기", cost: 200, textTemplate: "상대에게 73 피해를 준다. 힘이 5 이상이면 인내가 3 증가한다." },
-    { name: "굳건한 타격", cost: 100, textTemplate: "상대에게 28 피해를 준다. 인내가 1, 힘이 1 증가한다." },
-    { name: "굳건한 수비", cost: 100, textTemplate: "다음 상대 턴이 종료할 때 까지 자신이 받는 피해 감소가 15 증가한다. 인내가 2 증가한다." },
-    { name: "굳건한 의지", cost: 100, textTemplate: "인내가 2, 집중이 1 증가한다." },
-    { name: "굳건한 방패 밀쳐내기", cost: 200, textTemplate: "상대에게 90 피해를 준다. 인내가 5 이상이면 집중이 3 증가한다." },
-    { name: "침착한 공격", cost: 100, textTemplate: "상대에게 29 피해를 준다. 집중이 2 증가한다." },
-    { name: "침착한 사격", cost: 100, textTemplate: "상대에게 40 피해를 준다. 힘이 1, 민첩이 1 증가한다." },
-    { name: "침착한 판단", cost: 100, textTemplate: "집중이 2, 마력이 1 증가한다." },
-    { name: "침착한 집중 사격", cost: 200, textTemplate: "상대에게 81 피해를 준다. 집중이 5 이상이면 민첩이 3 증가한다." },
-    { name: "신속한 찌르기", cost: 100, textTemplate: "상대에게 38 피해를 준다. 민첩이 1, 마력이 1 증가한다." },
-    { name: "신속한 기회 엿보기", cost: 100, textTemplate: "덱에서 카드를 1장 뽑는다. 민첩이 1, 인내가 1 증가한다." },
-    { name: "신속한 달리기", cost: 100, textTemplate: "민첩이 3 증가한다." },
-    { name: "신속한 연속 공격", cost: 200, textTemplate: "상대에게 78 피해를 준다. 민첩이 5 이상이면 힘이 3 증가한다." },
-    { name: "신비로운 마법", cost: 100, textTemplate: "상대에게 32 피해를 준다. 마력이 2 증가한다." },
-    { name: "신비로운 치유", cost: 100, textTemplate: "자신의 체력을 43 회복한다. 인내가 1, 마력이 1 증가한다." },
-    { name: "신비로운 마력 방출", cost: 100, textTemplate: "마력이 2, 민첩이 1 증가한다." },
-    { name: "신비로운 마법 폭주", cost: 200, textTemplate: "상대에게 85 피해를 준다. 마력이 5 이상이면 마력이 3 증가한다." },
-    { name: "강력한 내려찍기", cost: 300, textTemplate: "상대에게 ???(힘 X 20) 피해를 준다." },
-    { name: "강력한 마검 휘두르기", cost: 300, textTemplate: "상대에게 ???(80 + 힘 X 5 + 마력 X 5) 피해를 준다." },
-    { name: "불굴의 막아내기", cost: 300, textTemplate: "자신이 다음 상대 턴이 종료할 때 까지 ???(인내 X 18) 보호막을 얻는다." },
-    { name: "불굴의 받아치기", cost: 300, textTemplate: "자신이 다음 상대 턴이 종료할 때 까지 ???(60 + 인내 X 7) 보호막을 얻는다. 민첩이 8 이상이면 상대에게 80 피해를 준다." },
-    { name: "초집중 목표 포착", cost: 300, textTemplate: "상대에게 ???(120 + 집중 8 이상이면 60) 피해를 준다." },
-    { name: "초집중 공격 흘려내기", cost: 300, textTemplate: "자신이 다음 상대 턴이 종료할 때 까지 ???(집중 X 13) 보호막을 얻는다. 인내가 8 이상이면 덱에서 카드를 2장 뽑는다." },
-    { name: "기민한 빈틈 노리기", cost: 300, textTemplate: "상대에게 ???(민첩 X 16) 피해를 준다. 덱에서 카드를 1장 뽑는다." },
-    { name: "기민한 치고 빠지기", cost: 300, textTemplate: "다음 상대 턴이 종료할 때 까지 자신이 받는 피해 감소가 ???(10 + 민첩 X 1) 증가한다. 힘이 8 이상이면 상대에게 87 피해를 준다." },
-    { name: "엄청난 불의 방패", cost: 300, textTemplate: "상대에게 ???(60 + 마력 X 7) 피해를 준다. 다음 상대 턴이 종료할 때 까지 자신이 받는 피해 감소가 15 증가한다." },
-    { name: "엄청난 마력 집중", cost: 300, textTemplate: "상대에게 ???(마력 X 15 + 집중 X 8) 피해를 준다." }
+const DECK_CARDS = [
+    { name: "재빠른 일격", cost: 100, textTemplate: "상대에게 202 피해를 준다. 힘이 8 증가한다." },
+    { name: "굳건한 수비", cost: 100, textTemplate: "자신이 다음 상대 턴이 종료할 때 까지 176 보호막을 얻는다. 인내가 9 증가한다." },
+    { name: "침착한 판단", cost: 100, textTemplate: "다음 상대 턴이 종료할 때 까지 자신의 받는 피해 감소가 70 증가한다. 집중이 10 증가한다." },
+    { name: "신속한 찌르기", cost: 100, textTemplate: "상대에게 120 피해를 2번 준다. 민첩이 7 증가한다." },
+    { name: "신비로운 마법", cost: 100, textTemplate: "자신의 패가 이 카드를 제외하고 2장 이상일 때만 이 카드를 사용할 수 있다. 패의 카드를 2장 카드 무덤으로 보낸다. 덱에서 카드를 2장 뽑는다. 마력이 6 증가한다." }
+];
+
+const STANDBY_CARDS = [
+    { name: "솟구치는 힘", cost: 50, textTemplate: "힘이 17 증가한다." },
+    { name: "불굴의 인내심", cost: 50, textTemplate: "인내가 16 증가한다." },
+    { name: "정신집중", cost: 50, textTemplate: "집중이 15 증가한다." },
+    { name: "전력질주", cost: 50, textTemplate: "민첩이 18 증가한다." },
+    { name: "마력 폭주", cost: 50, textTemplate: "마력이 19 증가한다." },
+    { name: "묵직한 내려찍기", cost: 200, textTemplate: "상대에게 (151 + 힘 X 5) 의 피해를 준다. 자신이 다음 상대 턴이 종료할 때 까지 (인내 X 4) 보호막을 얻는다." },
+    { name: "질풍의 치고 빠지기", cost: 200, textTemplate: "상대에게 (53 + 민첩 X 2) 의 피해를 3번 준다. 다음 상대 턴이 종료할 때 까지 자신의 받는 피해 감소가 (40 + 집중 X 1) 증가한다." },
+    { name: "신성한 치유 마법", cost: 200, textTemplate: "자신이 (192 + 마력 X 6) 의 체력을 회복한다." },
+    { name: "부드러움은 강함을 이긴다", cost: 150, textTemplate: "상대에게 (200 + 상대 힘 X 4) 피해를 준다." },
+    { name: "방패 꿰뚫기", cost: 150, textTemplate: "다음 상대 턴이 종료할 때 까지 자신의 공격시 추가 피해가 (100 + 상대 인내 X 3) 증가한다." },
+    { name: "방해", cost: 150, textTemplate: "상대에게 (149 + 상대 집중 X 5) 피해를 준다." },
+    { name: "탈진", cost: 150, textTemplate: "상대에게 (269 + 상대 민첩 X 3) 피해를 준다." },
+    { name: "마력 흡수", cost: 150, textTemplate: "다음 상대 턴이 종료할 때 까지 자신의 공격시 추가 피해가 (52 + 상대 마력 X 4) 증가한다." }
 ];
 
 function shuffle(array) {
@@ -53,18 +43,26 @@ function shuffle(array) {
     return array;
 }
 
-function createTestDeck() {
+function initDeckAndStandby() {
     let deck = [];
+    let standby = [];
     let idCounter = 1;
-    CARD_LIST.forEach(card => deck.push({ ...card, instanceId: idCounter++ }));
-    return shuffle(deck);
+    
+    DECK_CARDS.forEach(card => {
+        deck.push({ ...card, instanceId: idCounter++ });
+        deck.push({ ...card, instanceId: idCounter++ }); // 2장씩
+    });
+    STANDBY_CARDS.forEach(card => {
+        standby.push({ ...card, instanceId: idCounter++ }); // 1장씩
+    });
+    return { deck: shuffle(deck), standby };
 }
 
 function drawCards(room, playerId, count) {
     const player = room.players[playerId];
     for(let i=0; i<count; i++) {
-        if(player.hand.length >= 8) {
-            io.to(playerId).emit('errorMessage', { message: "패가 가득 찼습니다! (최대 8장)" });
+        if(player.hand.length >= 10) {
+            io.to(playerId).emit('errorMessage', { message: "패가 가득 찼습니다! (최대 10장)" });
             break;
         }
         if(player.deck.length === 0) {
@@ -76,23 +74,17 @@ function drawCards(room, playerId, count) {
     io.to(room.id).emit('updateState', { gameState: room });
 }
 
-// 다단 히트 지원 대미지 함수 (LIFO 보호막 차감 적용)
+// 다단 히트 지원
 function dealDamage(room, attackerId, defenderId, baseDmg, hits = 1) {
     let attacker = room.players[attackerId];
     let defender = room.players[defenderId];
     for(let i=0; i<hits; i++) {
         let dmg = Math.max(0, baseDmg + attacker.bonusDamage - defender.damageReduction);
-        // LIFO: 배열 뒤쪽(최근)부터 차감
         for (let j = defender.shields.length - 1; j >= 0; j--) {
             if (dmg <= 0) break;
             let s = defender.shields[j];
-            if (s.amount >= dmg) {
-                s.amount -= dmg;
-                dmg = 0;
-            } else {
-                dmg -= s.amount;
-                s.amount = 0;
-            }
+            if (s.amount >= dmg) { s.amount -= dmg; dmg = 0; } 
+            else { dmg -= s.amount; s.amount = 0; }
         }
         defender.shields = defender.shields.filter(s => s.amount > 0);
         defender.hp -= dmg;
@@ -107,8 +99,8 @@ function addShield(room, playerId, amount, durationTurns) {
     });
 }
 
-function queueEffect(room, executeFunc, expireTurn) {
-    room.activeEffects.push({ execute: executeFunc, expireTurn: expireTurn });
+function queueEffect(room, targetPlayerId, executeFunc, expireTurn) {
+    room.activeEffects.push({ target: targetPlayerId, execute: executeFunc, expireTurn: expireTurn });
 }
 
 async function startTurnSequence(roomId) {
@@ -117,22 +109,21 @@ async function startTurnSequence(roomId) {
 
     room.globalTurnCount++;
     const p = room.players[room.turn];
+    p.pulledStandbyThisTurn = false; // 스탠바이 제한 리셋
 
-    // 1단계
     io.to(roomId).emit('phaseBanner', { type: 'TURN_CHANGE' });
     await delay(1000);
     
     if(room.globalTurnCount > 1) p.energy = Math.min(600, p.energy + p.energyRegen);
-    drawCards(room, room.turn, room.globalTurnCount === 1 ? 3 : 2); // 시작 시 3장, 이후 2장
+    
+    // 최대 6장이 되도록 드로우
+    let drawCount = 6 - p.hand.length;
+    if (drawCount > 0) drawCards(room, room.turn, drawCount);
     await delay(1000);
 
-    // 2단계 (시작 페이즈 효과 처리 공간 - 향후 확장)
-    io.to(roomId).emit('phaseBanner', { type: 'START_PHASE' });
-    await delay(1000);
-    // TODO: 시작 효과 FIFO 처리 루프 구현
-    await delay(1000);
-
-    // 3단계
+    // 시작 페이즈 (효과가 없으면 배너 스킵)
+    // 현재 시작시 적용되는 효과 기획이 없으므로 항상 스킵됩니다.
+    
     room.phase = "main";
     io.to(roomId).emit('phaseBanner', { type: 'MAIN_PHASE' });
     io.to(roomId).emit('updateState', { gameState: room });
@@ -143,34 +134,36 @@ async function endTurnSequence(roomId) {
     if(!room) return;
     room.phase = "processing";
 
-    // 4단계
-    io.to(roomId).emit('phaseBanner', { type: 'END_PHASE' });
-    await delay(1000);
-    
-    // FIFO 효과 및 만료 처리 (내 보호막/버프 만료 등)
     let p = room.players[room.turn];
     let enemyId = room.playerIds.find(id => id !== room.turn);
     let enemy = room.players[enemyId];
 
-    // 만료 턴이 현재 턴카운트와 일치하는 효과(버프 복구) 실행
-    room.activeEffects = room.activeEffects.filter(eff => {
-        if(eff.expireTurn === room.globalTurnCount) { eff.execute(room); return false; }
-        return true;
-    });
+    // 종료 시 만료되는 효과(방어력 감소 등)와 방패가 있는지 검사
+    let expiringEffects = room.activeEffects.filter(eff => eff.expireTurn === room.globalTurnCount);
+    let expiringShields = [...p.shields, ...enemy.shields].filter(s => s.expireTurn === room.globalTurnCount);
 
-    // 보호막 만료 처리 (FIFO)
-    p.shields = p.shields.filter(s => s.expireTurn !== room.globalTurnCount);
-    enemy.shields = enemy.shields.filter(s => s.expireTurn !== room.globalTurnCount);
-    io.to(roomId).emit('updateState', { gameState: room });
-    await delay(1000);
+    if (expiringEffects.length > 0 || expiringShields.length > 0) {
+        io.to(roomId).emit('phaseBanner', { type: 'END_PHASE' });
+        await delay(1000);
+        
+        room.activeEffects = room.activeEffects.filter(eff => {
+            if(eff.expireTurn === room.globalTurnCount) { eff.execute(room); return false; }
+            return true;
+        });
+        p.shields = p.shields.filter(s => s.expireTurn !== room.globalTurnCount);
+        enemy.shields = enemy.shields.filter(s => s.expireTurn !== room.globalTurnCount);
+        
+        io.to(roomId).emit('updateState', { gameState: room });
+        await delay(1000);
+    }
 
-    // 5단계
     io.to(roomId).emit('phaseBanner', { type: 'TURN_OVER' });
     await delay(1000);
 
-    if (p.hand.length > 3) {
+    // Turn Over 시 패 5장 제한
+    if (p.hand.length > 5) {
         room.phase = "discard";
-        io.to(roomId).emit('requireDiscard', { count: p.hand.length - 3 });
+        io.to(roomId).emit('updateState', { gameState: room }); // discard phase 진입 알림
     } else {
         room.turn = enemyId;
         startTurnSequence(roomId);
@@ -187,12 +180,16 @@ io.on('connection', (socket) => {
             const p2 = waitingPlayers.shift();
             const roomId = 'room_' + Date.now();
 
-            const initPlayer = () => ({
-                hp: 700, energy: 600, energyRegen: 300,
-                strength: 0, endurance: 0, focus: 0, agility: 0, magic: 0,
-                bonusDamage: 0, damageReduction: 0,
-                shields: [], deck: createTestDeck(), hand: [], graveyard: []
-            });
+            const initPlayer = () => {
+                const decks = initDeckAndStandby();
+                return {
+                    hp: 1500, energy: 600, energyRegen: 300,
+                    strength: 0, endurance: 0, focus: 0, agility: 0, magic: 0,
+                    bonusDamage: 0, damageReduction: 0,
+                    shields: [], deck: decks.deck, standbyDeck: decks.standby, hand: [], graveyard: [],
+                    pulledStandbyThisTurn: false
+                };
+            };
 
             rooms[roomId] = {
                 id: roomId,
@@ -213,12 +210,34 @@ io.on('connection', (socket) => {
         }
     });
 
-    socket.on('playCard', ({ roomId, instanceId }) => {
+    socket.on('pullStandbyCard', ({ roomId, instanceId }) => {
+        const room = rooms[roomId];
+        if (!room || room.turn !== socket.id || room.phase !== "main") return;
+        const p = room.players[socket.id];
+        
+        if (p.pulledStandbyThisTurn) return; // 1턴 1회 제한
+        if (p.hand.length >= 10) {
+            socket.emit('errorMessage', { message: "패가 가득 차서 가져올 수 없습니다." });
+            return;
+        }
+
+        const idx = p.standbyDeck.findIndex(c => c.instanceId === instanceId);
+        if (idx !== -1) {
+            p.hand.push(p.standbyDeck[idx]);
+            p.standbyDeck.splice(idx, 1);
+            p.pulledStandbyThisTurn = true;
+            io.to(roomId).emit('updateState', { gameState: room });
+        }
+    });
+
+    socket.on('playCard', ({ roomId, instanceId, discardTargetIds }) => {
         const room = rooms[roomId];
         if (!room || room.turn !== socket.id || room.phase !== "main") return;
 
         const p = room.players[socket.id];
         const targetId = room.playerIds.find(id => id !== socket.id);
+        const enemy = room.players[targetId];
+
         const cardIndex = p.hand.findIndex(c => c.instanceId === instanceId);
         if (cardIndex === -1) return;
 
@@ -228,51 +247,62 @@ io.on('connection', (socket) => {
             return;
         }
 
-        p.energy -= card.cost;
-        p.hand.splice(cardIndex, 1);
-        p.graveyard.push(card);
+        // 신비로운 마법 조건 체크 및 처리
+        if (card.name === "신비로운 마법") {
+            if (!discardTargetIds || discardTargetIds.length !== 2) return;
+            // 2장 버리기
+            discardTargetIds.forEach(targetId => {
+                const tIdx = p.hand.findIndex(c => c.instanceId === targetId);
+                if (tIdx !== -1) {
+                    p.graveyard.push(p.hand[tIdx]);
+                    p.hand.splice(tIdx, 1);
+                }
+            });
+            drawCards(room, socket.id, 2);
+            p.magic += 6;
+        } 
+        else {
+            // 다른 카드들 효과 처리
+            switch(card.name) {
+                case "재빠른 일격": dealDamage(room, socket.id, targetId, 202); p.strength+=8; break;
+                case "굳건한 수비": addShield(room, socket.id, 176, 1); p.endurance+=9; break;
+                case "침착한 판단": 
+                    p.damageReduction += 70; p.focus+=10; 
+                    queueEffect(room, socket.id, (r) => { r.players[socket.id].damageReduction -= 70; }, room.globalTurnCount + 1);
+                    break;
+                case "신속한 찌르기": dealDamage(room, socket.id, targetId, 120, 2); p.agility+=7; break;
+                case "솟구치는 힘": p.strength += 17; break;
+                case "불굴의 인내심": p.endurance += 16; break;
+                case "정신집중": p.focus += 15; break;
+                case "전력질주": p.agility += 18; break;
+                case "마력 폭주": p.magic += 19; break;
+                case "묵직한 내려찍기": dealDamage(room, socket.id, targetId, 151 + (p.strength*5)); addShield(room, socket.id, p.endurance*4, 1); break;
+                case "질풍의 치고 빠지기": 
+                    dealDamage(room, socket.id, targetId, 53 + (p.agility*2), 3);
+                    let r1 = 40 + p.focus; p.damageReduction += r1;
+                    queueEffect(room, socket.id, (r) => { r.players[socket.id].damageReduction -= r1; }, room.globalTurnCount + 1);
+                    break;
+                case "신성한 치유 마법": p.hp = Math.min(1500, p.hp + 192 + (p.magic*6)); break;
+                case "부드러움은 강함을 이긴다": dealDamage(room, socket.id, targetId, 200 + (enemy.strength*4)); break;
+                case "방패 꿰뚫기": 
+                    let b1 = 100 + (enemy.endurance*3); p.bonusDamage += b1;
+                    queueEffect(room, socket.id, (r) => { r.players[socket.id].bonusDamage -= b1; }, room.globalTurnCount + 1);
+                    break;
+                case "방해": dealDamage(room, socket.id, targetId, 149 + (enemy.focus*5)); break;
+                case "탈진": dealDamage(room, socket.id, targetId, 269 + (enemy.agility*3)); break;
+                case "마력 흡수":
+                    let b2 = 52 + (enemy.magic*4); p.bonusDamage += b2;
+                    queueEffect(room, socket.id, (r) => { r.players[socket.id].bonusDamage -= b2; }, room.globalTurnCount + 1);
+                    break;
+            }
+        }
 
-        // 카드 효과 분기
-        switch(card.name) {
-            case "재빠른 일격": dealDamage(room, socket.id, targetId, 34); p.strength+=2; break;
-            case "재빠른 막기": addShield(room, socket.id, 26, 1); p.strength+=1; p.agility+=1; break;
-            case "재빠른 준비동작": p.strength+=2; p.focus+=1; break;
-            case "재빠른 베어가르기": dealDamage(room, socket.id, targetId, 73); if(p.strength>=5) p.endurance+=3; break;
-            case "굳건한 타격": dealDamage(room, socket.id, targetId, 28); p.endurance+=1; p.strength+=1; break;
-            case "굳건한 수비": 
-                p.damageReduction += 15;
-                queueEffect(room, (r) => { r.players[socket.id].damageReduction -= 15; }, room.globalTurnCount + 1);
-                p.endurance+=2; break;
-            case "굳건한 의지": p.endurance+=2; p.focus+=1; break;
-            case "굳건한 방패 밀쳐내기": dealDamage(room, socket.id, targetId, 90); if(p.endurance>=5) p.focus+=3; break;
-            case "침착한 공격": dealDamage(room, socket.id, targetId, 29); p.focus+=2; break;
-            case "침착한 사격": dealDamage(room, socket.id, targetId, 40); p.strength+=1; p.agility+=1; break;
-            case "침착한 판단": p.focus+=2; p.magic+=1; break;
-            case "침착한 집중 사격": dealDamage(room, socket.id, targetId, 81); if(p.focus>=5) p.agility+=3; break;
-            case "신속한 찌르기": dealDamage(room, socket.id, targetId, 38); p.agility+=1; p.magic+=1; break;
-            case "신속한 기회 엿보기": drawCards(room, socket.id, 1); p.agility+=1; p.endurance+=1; break;
-            case "신속한 달리기": p.agility+=3; break;
-            case "신속한 연속 공격": dealDamage(room, socket.id, targetId, 78); if(p.agility>=5) p.strength+=3; break;
-            case "신비로운 마법": dealDamage(room, socket.id, targetId, 32); p.magic+=2; break;
-            case "신비로운 치유": p.hp = Math.min(700, p.hp + 43); p.endurance+=1; p.magic+=1; break;
-            case "신비로운 마력 방출": p.magic+=2; p.agility+=1; break;
-            case "신비로운 마법 폭주": dealDamage(room, socket.id, targetId, 85); if(p.magic>=5) p.magic+=3; break;
-            case "강력한 내려찍기": dealDamage(room, socket.id, targetId, p.strength*20); break;
-            case "강력한 마검 휘두르기": dealDamage(room, socket.id, targetId, 80 + (p.strength*5) + (p.magic*5)); break;
-            case "불굴의 막아내기": addShield(room, socket.id, p.endurance*18, 1); break;
-            case "불굴의 받아치기": addShield(room, socket.id, 60 + (p.endurance*7), 1); if(p.agility>=8) dealDamage(room, socket.id, targetId, 80); break;
-            case "초집중 목표 포착": dealDamage(room, socket.id, targetId, 120 + (p.focus>=8?60:0)); break;
-            case "초집중 공격 흘려내기": addShield(room, socket.id, p.focus*13, 1); if(p.endurance>=8) drawCards(room, socket.id, 2); break;
-            case "기민한 빈틈 노리기": dealDamage(room, socket.id, targetId, p.agility*16); drawCards(room, socket.id, 1); break;
-            case "기민한 치고 빠지기": 
-                let amt = 10 + p.agility; p.damageReduction += amt;
-                queueEffect(room, (r) => { r.players[socket.id].damageReduction -= amt; }, room.globalTurnCount + 1);
-                if(p.strength>=8) dealDamage(room, socket.id, targetId, 87); break;
-            case "엄청난 불의 방패": 
-                dealDamage(room, socket.id, targetId, 60 + (p.magic*7)); p.damageReduction += 15;
-                queueEffect(room, (r) => { r.players[socket.id].damageReduction -= 15; }, room.globalTurnCount + 1);
-                break;
-            case "엄청난 마력 집중": dealDamage(room, socket.id, targetId, (p.magic*15) + (p.focus*8)); break;
+        // 지불 및 카드 처리 (인덱스를 다시 찾음. 다중 버리기로 패 배열 인덱스가 꼬일 수 있으므로)
+        const finalCardIndex = p.hand.findIndex(c => c.instanceId === instanceId);
+        if(finalCardIndex !== -1) {
+            p.energy -= card.cost;
+            p.graveyard.push(p.hand[finalCardIndex]);
+            p.hand.splice(finalCardIndex, 1);
         }
 
         if (room.players[targetId].hp <= 0) {
@@ -303,7 +333,7 @@ io.on('connection', (socket) => {
         }
 
         io.to(roomId).emit('updateState', { gameState: room });
-        if (p.hand.length <= 3) {
+        if (p.hand.length <= 5) {
             room.turn = room.playerIds.find(id => id !== socket.id);
             startTurnSequence(roomId);
         }

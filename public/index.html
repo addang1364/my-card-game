@@ -11,40 +11,43 @@
     <div id="banner-layer" class="hidden"><h1 id="banner-text"></h1></div>
 
     <div id="lobby-screen">
-        <h1 class="game-title">진화된 배틀 아레나</h1>
+        <h1 class="game-title">진화된 배틀 아레나 v2</h1>
         <button id="match-btn">전투 참가</button>
         <p id="status-text"></p>
     </div>
 
     <div id="game-screen" class="hidden">
-        <!-- 상대방 영역 -->
         <div id="enemy-area" class="player-zone">
+            <div class="deck-grave-info enemy-info-box">
+                <div class="info-btn" style="cursor:default;">덱 (<span id="enemy-deck-count">0</span>)</div>
+                <div id="enemy-standby-btn" class="info-btn">스탠바이 (<span id="enemy-standby-count">0</span>)</div>
+                <div id="enemy-grave-btn" class="info-btn">카드 무덤 (<span id="enemy-grave-count">0</span>)</div>
+            </div>
+
             <div class="stats-panel">
                 <div class="panel-header"><span class="panel-title">상대방</span></div>
                 <div class="stat-bars">
                     <div class="shield-container" id="enemy-shields"></div>
                     <div class="bar-container hp-bar-container">
                         <div id="enemy-hp-bar" class="bar hp-bar"></div>
-                        <div id="enemy-hp-text" class="bar-text">700 / 700</div>
+                        <div id="enemy-hp-text" class="bar-text">1500 / 1500</div>
                     </div>
-                </div>
-                <div class="deck-grave-info">
-                    <span id="enemy-deck-btn">덱: <span id="enemy-deck-count">0</span>장</span>
-                    <span id="enemy-grave-btn">무덤: <span id="enemy-grave-count">0</span>장</span>
                 </div>
             </div>
         </div>
 
-        <!-- 중앙 전투 영역 -->
         <div id="battle-field">
+            <div id="card-preview-box" class="preview-box">
+                <p class="preview-placeholder">패의 카드를 클릭하면<br>자세히 볼 수 있습니다</p>
+            </div>
+
             <div id="drop-zone">
-                <span id="drop-zone-text">카드를 이곳에 사용하세요<br>(초과 카드 버리기 겸용)</span>
+                <span id="drop-zone-text">카드를 이곳에 사용하세요</span>
                 <div id="recent-card-view" class="hidden"></div>
             </div>
             <button id="end-turn-btn" class="hidden">차례 종료</button>
         </div>
 
-        <!-- 내 영역 -->
         <div id="my-area" class="player-zone">
             <div class="stats-panel my-stats-panel">
                 <div class="panel-header"><span class="panel-title">나의 스탯</span></div>
@@ -52,35 +55,37 @@
                     <div class="shield-container" id="my-shields"></div>
                     <div class="bar-container hp-bar-container">
                         <div id="my-hp-bar" class="bar hp-bar"></div>
-                        <div id="my-hp-text" class="bar-text">700 / 700</div>
+                        <div id="my-hp-text" class="bar-text">1500 / 1500</div>
                     </div>
                     <div class="bar-container energy-bar-container">
                         <div id="my-energy-bar" class="bar energy-bar"></div>
                         <div id="my-energy-text" class="bar-text">600 / 600</div>
                     </div>
                 </div>
-                <!-- 신규 스탯 목록 -->
                 <div class="rpg-stats">
-                    <div class="stat-item" data-tooltip="현재 자신의 힘 중첩입니다.">힘: <span id="stat-str">0</span></div>
-                    <div class="stat-item" data-tooltip="현재 자신의 인내 중첩입니다.">인내: <span id="stat-end">0</span></div>
-                    <div class="stat-item" data-tooltip="현재 자신의 집중 중첩입니다.">집중: <span id="stat-foc">0</span></div>
-                    <div class="stat-item" data-tooltip="현재 자신의 민첩 중첩입니다.">민첩: <span id="stat-agi">0</span></div>
-                    <div class="stat-item" data-tooltip="현재 자신의 마력 중첩입니다.">마력: <span id="stat-mag">0</span></div>
+                    <div class="stat-item" data-tooltip="현재 자신의 힘 중첩입니다."><span class="c-str">힘</span>: <span id="stat-str">0</span></div>
+                    <div class="stat-item" data-tooltip="현재 자신의 인내 중첩입니다."><span class="c-end">인내</span>: <span id="stat-end">0</span></div>
+                    <div class="stat-item" data-tooltip="현재 자신의 집중 중첩입니다."><span class="c-foc">집중</span>: <span id="stat-foc">0</span></div>
+                    <div class="stat-item" data-tooltip="현재 자신의 민첩 중첩입니다."><span class="c-agi">민첩</span>: <span id="stat-agi">0</span></div>
+                    <div class="stat-item" data-tooltip="현재 자신의 마력 중첩입니다."><span class="c-mag">마력</span>: <span id="stat-mag">0</span></div>
                     <div class="stat-item" data-tooltip="상대에게 피해를 줄 때, 이 수치만큼 피해가 증가합니다.">공격시 추가 피해: <span id="stat-add-dmg">0</span></div>
-                    <div class="stat-item" data-tooltip="자신이 피해를 받을 때, 이 수치만큼 피해가 감소합니다.">피해 감소: <span id="stat-red-dmg">0</span></div>
+                    <div class="stat-item" data-tooltip="자신이 피해를 받을 때, 이 수치만큼 피해가 감소합니다.">받는 피해 감소: <span id="stat-red-dmg">0</span></div>
                     <div class="stat-item" data-tooltip="자신의 턴 시작시, 이 수치만큼 에너지가 재생됩니다.">에너지 재생: <span id="stat-regen">300</span></div>
-                </div>
-                <div class="deck-grave-info my-info">
-                    <div id="my-deck-btn" class="info-btn">덱 목록 (<span id="my-deck-count">0</span>)</div>
-                    <div id="my-grave-btn" class="info-btn">카드 무덤 (<span id="my-grave-count">0</span>)</div>
                 </div>
             </div>
             
             <div id="my-hand" class="hand-container"></div>
+
+            <div class="deck-grave-info my-info-box">
+                <div id="my-standby-btn" class="info-btn highlight-btn">스탠바이 카드 (<span id="my-standby-count">0</span>)</div>
+                <div style="display: flex; gap: 5px;">
+                    <div id="my-deck-btn" class="info-btn">덱 목록 (<span id="my-deck-count">0</span>)</div>
+                    <div id="my-grave-btn" class="info-btn">카드 무덤 (<span id="my-grave-count">0</span>)</div>
+                </div>
+            </div>
         </div>
     </div>
 
-    <!-- 덱/무덤 확인용 투명 모달 -->
     <div id="list-modal" class="modal hidden">
         <div class="modal-wrapper">
             <button id="modal-close" class="close-btn">X</button>
@@ -88,6 +93,7 @@
                 <div id="modal-preview" class="card-preview">
                     <p style="color:#8b949e; margin-top:50px;">카드를 선택하세요</p>
                 </div>
+                <button id="modal-confirm-btn" class="action-btn hidden">선택 완료</button>
             </div>
             <div class="modal-right">
                 <h2 id="modal-title" style="margin-bottom:15px; color:#58a6ff;">목록</h2>
