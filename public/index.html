@@ -11,9 +11,67 @@
     <div id="banner-layer" class="hidden"><h1 id="banner-text"></h1></div>
 
     <div id="lobby-screen">
-        <h1 class="game-title">진화된 배틀 아레나 v2</h1>
-        <button id="match-btn">전투 참가</button>
-        <p id="status-text"></p>
+        <div class="lobby-header">
+            <h1 class="game-title">진화된 배틀 아레나 v3</h1>
+            <div class="lobby-tabs">
+                <button id="tab-match" class="active">매칭 화면</button>
+                <button id="tab-deck">덱 편집</button>
+            </div>
+        </div>
+
+        <div id="lobby-match-view" class="lobby-view">
+            <button id="match-btn">전투 참가</button>
+            <p id="status-text"></p>
+        </div>
+
+        <div id="lobby-deck-view" class="lobby-view hidden">
+            <div class="deck-edit-container">
+                <div class="edit-left">
+                    <div class="preview-area">
+                        <div id="edit-preview" class="preview-box">
+                            <p class="preview-placeholder">카드를 올려보세요</p>
+                        </div>
+                        <div id="edit-keywords" class="keyword-box hidden">
+                            <h3 style="color:#f39c12; margin-bottom:10px;">키워드 설명</h3>
+                            <div id="edit-keyword-list"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="slots-container">
+                        <div class="slot-section">
+                            <h4>기본 카드 (고정 / 6장)</h4>
+                            <div class="slots-row" id="slots-basic"></div>
+                        </div>
+                        <div class="slot-section">
+                            <h4>스탠바이 카드 (게임 내 4장씩 복사 / 2칸)</h4>
+                            <div class="slots-row" id="slots-standby">
+                                <div class="empty-slot" data-type="standby" data-index="0"></div>
+                                <div class="empty-slot" data-type="standby" data-index="1"></div>
+                            </div>
+                        </div>
+                        <div class="slot-section">
+                            <h4>서브 스탠바이 카드 (게임 내 1장씩 / 6칸)</h4>
+                            <div class="slots-row" id="slots-substandby">
+                                <div class="empty-slot" data-type="substandby" data-index="0"></div>
+                                <div class="empty-slot" data-type="substandby" data-index="1"></div>
+                                <div class="empty-slot" data-type="substandby" data-index="2"></div>
+                                <div class="empty-slot" data-type="substandby" data-index="3"></div>
+                                <div class="empty-slot" data-type="substandby" data-index="4"></div>
+                                <div class="empty-slot" data-type="substandby" data-index="5"></div>
+                            </div>
+                        </div>
+                        <p style="font-size: 11px; color: #8b949e; margin-top:10px;">우측 목록에서 카드를 드래그하여 슬롯에 배치하세요. 우클릭으로 제거할 수 있습니다.<br>※ 스탠바이와 서브 스탠바이를 통틀어 중복된 카드는 넣을 수 없습니다.</p>
+                    </div>
+                </div>
+                <div class="edit-right">
+                    <div class="filter-bar">
+                        <input type="text" id="edit-search" placeholder="카드 이름이나 효과 검색...">
+                        <button id="edit-sort-btn">코스트 정렬</button>
+                    </div>
+                    <div id="edit-card-pool" class="card-grid"></div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <div id="game-screen" class="hidden">
@@ -23,22 +81,27 @@
                 <div id="enemy-standby-btn" class="info-btn">스탠바이 (<span id="enemy-standby-count">0</span>)</div>
                 <div id="enemy-grave-btn" class="info-btn">카드 무덤 (<span id="enemy-grave-count">0</span>)</div>
             </div>
-
             <div class="stats-panel">
                 <div class="panel-header"><span class="panel-title">상대방</span></div>
                 <div class="stat-bars">
                     <div class="shield-container" id="enemy-shields"></div>
                     <div class="bar-container hp-bar-container">
                         <div id="enemy-hp-bar" class="bar hp-bar"></div>
-                        <div id="enemy-hp-text" class="bar-text">1500 / 1500</div>
+                        <div id="enemy-hp-text" class="bar-text">70 / 70</div>
                     </div>
                 </div>
             </div>
         </div>
 
         <div id="battle-field">
-            <div id="card-preview-box" class="preview-box">
-                <p class="preview-placeholder">패의 카드를 클릭하면<br>자세히 볼 수 있습니다</p>
+            <div class="preview-area in-game-preview-area">
+                <div id="card-preview-box" class="preview-box">
+                    <p class="preview-placeholder">패의 카드를 클릭하면<br>자세히 볼 수 있습니다</p>
+                </div>
+                <div id="game-keywords" class="keyword-box hidden">
+                    <h3 style="color:#f39c12; margin-bottom:10px;">키워드 설명</h3>
+                    <div id="game-keyword-list"></div>
+                </div>
             </div>
 
             <div id="drop-zone">
@@ -55,22 +118,12 @@
                     <div class="shield-container" id="my-shields"></div>
                     <div class="bar-container hp-bar-container">
                         <div id="my-hp-bar" class="bar hp-bar"></div>
-                        <div id="my-hp-text" class="bar-text">1500 / 1500</div>
+                        <div id="my-hp-text" class="bar-text">70 / 70</div>
                     </div>
                     <div class="bar-container energy-bar-container">
                         <div id="my-energy-bar" class="bar energy-bar"></div>
-                        <div id="my-energy-text" class="bar-text">600 / 600</div>
+                        <div id="my-energy-text" class="bar-text">400 / 400</div>
                     </div>
-                </div>
-                <div class="rpg-stats">
-                    <div class="stat-item" data-tooltip="현재 자신의 힘 중첩입니다."><span class="c-str">힘</span>: <span id="stat-str">0</span></div>
-                    <div class="stat-item" data-tooltip="현재 자신의 인내 중첩입니다."><span class="c-end">인내</span>: <span id="stat-end">0</span></div>
-                    <div class="stat-item" data-tooltip="현재 자신의 집중 중첩입니다."><span class="c-foc">집중</span>: <span id="stat-foc">0</span></div>
-                    <div class="stat-item" data-tooltip="현재 자신의 민첩 중첩입니다."><span class="c-agi">민첩</span>: <span id="stat-agi">0</span></div>
-                    <div class="stat-item" data-tooltip="현재 자신의 마력 중첩입니다."><span class="c-mag">마력</span>: <span id="stat-mag">0</span></div>
-                    <div class="stat-item" data-tooltip="상대에게 피해를 줄 때, 이 수치만큼 피해가 증가합니다.">공격시 추가 피해: <span id="stat-add-dmg">0</span></div>
-                    <div class="stat-item" data-tooltip="자신이 피해를 받을 때, 이 수치만큼 피해가 감소합니다.">받는 피해 감소: <span id="stat-red-dmg">0</span></div>
-                    <div class="stat-item" data-tooltip="자신의 턴 시작시, 이 수치만큼 에너지가 재생됩니다.">에너지 재생: <span id="stat-regen">300</span></div>
                 </div>
             </div>
             
