@@ -60,12 +60,11 @@ function drawCardsSystem(room, playerId, count) {
 }
 function drawCardsEffect(room, playerId, count) {
     drawCardsSystem(room, playerId, count);
-    room.players[playerId].stats.drewCard = true; // 효과 드로우 스탯 기록
+    room.players[playerId].stats.drewCard = true;
 }
 function heal(p, amount) { p.hp = Math.min(70, p.hp + amount); p.stats.healAmount += amount; p.stats.healedFromCard = true; }
 function payHP(p, amount) { p.hp -= amount; p.stats.hpPaidAmount += amount; }
 
-// 데미지 처리 (A방식: 타격 단위로 치명타 선적용 후 감소)
 function dealDamage(room, attackerId, defenderId, baseDmg, hits = 1) {
     let attacker = room.players[attackerId]; let defender = room.players[defenderId];
     for(let i=0; i<hits; i++) {
@@ -95,11 +94,11 @@ function startTurnSequence(roomId) {
     
     io.to(roomId).emit('phaseBanner', { type: 'TURN_CHANGE' });
     p.pulledStandbyThisTurn = false;
-    p.shield = 0; // 통합 보호막 증발
+    p.shield = 0; 
     
     let drawCount = 5 - p.hand.length;
-    if (drawCount > 0) drawCardsSystem(room, room.turn, drawCount); // 시스템 드로우 (효과 조건에 안 들어감)
-    p.energy = 400; // 완전 회복
+    if (drawCount > 0) drawCardsSystem(room, room.turn, drawCount); 
+    p.energy = 400; 
     
     room.phase = "main";
     io.to(roomId).emit('updateState', { gameState: room });
@@ -116,7 +115,6 @@ function endTurnSequence(roomId) {
         if (p.hand.length > 5) {
             room.phase = "discard"; io.to(roomId).emit('updateState', { gameState: room });
         } else {
-            // 치명타 및 턴스탯 정리
             p.critCharges = 0; p.infiniteCrit = false;
             enemy.lastTurnStats = { enemyDealtCrit: p.stats.dealtCrit, enemyHealed: p.stats.healedFromCard, enemyDrew: p.stats.drewCard };
             p.stats = { hitsDealt: 0, healAmount: 0, drewCard: false, hpPaidAmount: 0, dealtCrit: false, healedFromCard: false };
@@ -176,7 +174,6 @@ io.on('connection', (socket) => {
         const cardIndex = p.hand.findIndex(c => c.instanceId === instanceId); if (cardIndex === -1) return;
         const card = p.hand[cardIndex];
 
-        // 코스트 및 조건 검사
         if (p.energy < card.cost) return;
         if (card.hpCost && p.hp <= card.hpCost) return;
         if (card.discardCost && p.hand.length - 1 < card.discardCost) return;
@@ -187,7 +184,6 @@ io.on('connection', (socket) => {
         if (card.req === 'enemyDealtCrit' && !p.lastTurnStats.enemyDealtCrit) return;
         if (card.req === 'enemyDrew' && !p.lastTurnStats.enemyDrew) return;
 
-        // 코스트 지불
         if(card.hpCost) payHP(p, card.hpCost);
         if(card.discardCost && discardTargetIds) {
             discardTargetIds.forEach(tid => {
