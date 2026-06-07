@@ -83,7 +83,7 @@ body { background-color: #0d1117; color: #c9d1d9; height: 100vh; display: flex; 
 .card-frame:first-child { margin-left: 0; }
 .card-frame:hover { transform: translateY(-50px); z-index: 300 !important; }
 .card-playable { border-color: #1f6feb; }
-.card-unplayable { border-color: #f85149 !important; opacity: 0.8; } /* 조건 미달시 빨간 테두리 */
+.card-unplayable { border-color: #f85149 !important; opacity: 0.8; }
 
 .card-cost-badge { position: absolute; top: -10px; left: -10px; background: #1f6feb; color: white; font-size: 14px; font-weight: bold; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 2px solid #fff; box-shadow: 0 2px 5px rgba(0,0,0,0.5); }
 .card-name-label { font-size: 14px; font-weight: bold; text-align: center; margin-top: 10px; color: #f0f6fc; margin-bottom: 8px; }
@@ -102,3 +102,13 @@ body { background-color: #0d1117; color: #c9d1d9; height: 100vh; display: flex; 
 .action-btn { background: #238636; color: white; border: none; padding: 12px 20px; border-radius: 6px; cursor: pointer; font-size: 16px; font-weight: bold; width: 80%; }
 .action-btn:hover { background: #2ea043; }
 .action-btn:disabled { background: #484f58; color: #8b949e; cursor: not-allowed; }
+
+/* 🌟 카드 뽑기 애니메이션 🌟 */
+@keyframes drawCardAnim {
+    0% { opacity: 0; transform: translate(400px, -150px) scale(0.2) rotate(30deg); }
+    100% { opacity: 1; transform: translate(0, 0) scale(1) rotate(0deg); }
+}
+
+.card-just-drawn {
+    animation: drawCardAnim 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}

@@ -9,6 +9,9 @@ let modalMode = null;
 let selectedDiscardIds = [];
 let pendingMagicCardId = null;
 
+// 🌟 핵심: 이전 패의 카드 번호들을 기억하는 배열
+let previousHandIds = [];
+
 // 키워드 사전
 const KEYWORDS_DESC = {
     "피해": "상대의 체력을 이 수치만큼 감소시킨다.",
@@ -124,7 +127,6 @@ function showPreviewWithKeywords(card, previewBoxId, keywordBoxId, keywordListId
 
 // 덱 에디터 렌더링
 function renderDeckEditor(searchText = "", sortByCost = false) {
-    // 기본 카드 렌더링
     const basicSlots = document.getElementById('slots-basic');
     basicSlots.innerHTML = "";
     CARD_DB.filter(c => c.type === 'basic').forEach(c => {
@@ -134,7 +136,6 @@ function renderDeckEditor(searchText = "", sortByCost = false) {
         basicSlots.appendChild(el);
     });
 
-    // 스탠바이 슬롯 렌더링
     function renderSlotArray(arr, containerId, type) {
         const container = document.getElementById(containerId); container.innerHTML = "";
         arr.forEach((cardName, idx) => {
@@ -163,7 +164,6 @@ function renderDeckEditor(searchText = "", sortByCost = false) {
     renderSlotArray(myDeckSetup.standby, 'slots-standby', 'standby');
     renderSlotArray(myDeckSetup.subStandby, 'slots-substandby', 'substandby');
 
-    // 풀 렌더링
     let pool = CARD_DB.filter(c => c.type === 'other');
     if(searchText) pool = pool.filter(c => c.name.includes(searchText) || c.textTemplate.includes(searchText));
     if(sortByCost) pool.sort((a,b) => a.cost - b.cost);
@@ -182,7 +182,6 @@ function renderDeckEditor(searchText = "", sortByCost = false) {
 document.getElementById('edit-search').addEventListener('input', e => renderDeckEditor(e.target.value, false));
 document.getElementById('edit-sort-btn').addEventListener('click', () => renderDeckEditor(document.getElementById('edit-search').value, true));
 
-// 매칭 시작 (덱 유효성 검사)
 matchBtn.addEventListener('click', () => {
     if(myDeckSetup.standby.includes(null) || myDeckSetup.subStandby.includes(null)) {
         showToast("덱을 먼저 완성해 주세요! (빈 슬롯이 있습니다)"); return;
@@ -193,6 +192,7 @@ matchBtn.addEventListener('click', () => {
 socket.on('matching', () => { document.getElementById('status-text').innerText = "매칭 중..."; matchBtn.disabled = true; });
 socket.on('gameStart', ({ roomId, gameState }) => {
     currentRoomId = roomId; myId = socket.id;
+    previousHandIds = []; // 게임 시작 시 초기화
     lobbyScreen.classList.add('hidden'); gameScreen.classList.remove('hidden');
     updateUI(gameState);
 });
@@ -212,7 +212,6 @@ socket.on('gameOver', ({ winner, disconnect }) => {
     }, 500);
 });
 
-// 카드 발동 가능 여부 체크
 function isPlayable(card, me) {
     if(me.energy < card.cost) return false;
     if(card.hpCost && me.hp <= card.hpCost) return false;
@@ -268,10 +267,15 @@ function updateUI(gameState) {
 
     const myHand = document.getElementById('my-hand');
     myHand.innerHTML = "";
+    
     me.hand.forEach((card, index) => {
         const playable = isPlayable(card, me);
         const cardEl = document.createElement('div');
-        cardEl.className = `card-frame ${playable ? 'card-playable' : 'card-unplayable'}`;
+        
+        // 🌟 이번 업데이트에 이 카드가 새로 추가된 카드인지 검사
+        const isNewCard = !previousHandIds.includes(card.instanceId);
+        
+        cardEl.className = `card-frame ${playable ? 'card-playable' : 'card-unplayable'} ${isNewCard ? 'card-just-drawn' : ''}`;
         cardEl.style.zIndex = index; cardEl.draggable = playable; cardEl.dataset.instanceId = card.instanceId;
 
         cardEl.innerHTML = `<div class="card-cost-badge">${card.cost}</div><div class="card-name-label">${card.name}</div><div class="card-effect-text">${colorize(card.textTemplate)}</div>`;
@@ -281,7 +285,15 @@ function updateUI(gameState) {
             else e.dataTransfer.setData('text/plain', card.instanceId);
         });
         myHand.appendChild(cardEl);
+        
+        // 🌟 애니메이션이 끝나면 호버링을 위해 클래스 제거
+        if (isNewCard) {
+            setTimeout(() => { if (cardEl) cardEl.classList.remove('card-just-drawn'); }, 400);
+        }
     });
+    
+    // 🌟 렌더링이 끝나면 현재 패를 '이전 패'로 기억해둠
+    previousHandIds = me.hand.map(c => c.instanceId);
 }
 
 const dropZone = document.getElementById('drop-zone');
