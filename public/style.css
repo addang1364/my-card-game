@@ -2,7 +2,7 @@
 body { background-color: #0d1117; color: #c9d1d9; height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; overflow: hidden; }
 .hidden { display: none !important; }
 
-.kw-orange { color: #f39c12; font-weight: bold; } /* 키워드 주황색 */
+.kw-orange { color: #f39c12; font-weight: bold; }
 
 #toast-layer { position: fixed; top: 20px; z-index: 5000; display: flex; flex-direction: column; gap: 10px; align-items: center; pointer-events: none; }
 .toast-msg { background: rgba(22, 27, 34, 0.95); border: 1px solid #30363d; padding: 12px 24px; border-radius: 6px; font-size: 14px; font-weight: bold; animation: fadeInOut 3s forwards; }
@@ -103,12 +103,14 @@ body { background-color: #0d1117; color: #c9d1d9; height: 100vh; display: flex; 
 .action-btn:hover { background: #2ea043; }
 .action-btn:disabled { background: #484f58; color: #8b949e; cursor: not-allowed; }
 
-/* 🌟 카드 뽑기 애니메이션 🌟 */
+/* 🌟 순차적 샥샥샥 카드 뽑기 애니메이션 🌟 */
 @keyframes drawCardAnim {
-    0% { opacity: 0; transform: translate(400px, -150px) scale(0.2) rotate(30deg); }
+    /* 우측 하단 덱 버튼 위치(350px, 80px)에서 작게(scale 0.1) 대기하다가 날아옵니다 */
+    0% { opacity: 0; transform: translate(350px, 80px) scale(0.1) rotate(30deg); }
     100% { opacity: 1; transform: translate(0, 0) scale(1) rotate(0deg); }
 }
 
 .card-just-drawn {
-    animation: drawCardAnim 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    /* backwards 속성: 대기 시간(Delay) 동안 카드가 미리 보이지 않게 숨겨줍니다 */
+    animation: drawCardAnim 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) backwards;
 }

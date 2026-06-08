@@ -9,10 +9,11 @@ let modalMode = null;
 let selectedDiscardIds = [];
 let pendingMagicCardId = null;
 
-// 🌟 핵심: 이전 패의 카드 번호들을 기억하는 배열
 let previousHandIds = [];
 
-// 키워드 사전
+const sfxCardDraw = new Audio('audio/sfx/card-draw.ogg');
+sfxCardDraw.volume = 0.6; 
+
 const KEYWORDS_DESC = {
     "피해": "상대의 체력을 이 수치만큼 감소시킨다.",
     "보호막": "다음 상대 턴 종료시까지, 상대의 피해를 이 수치만큼 경감한다.",
@@ -22,7 +23,6 @@ const KEYWORDS_DESC = {
     "체력지불": "자신은 이 수치만큼 체력을 잃는다. 보호막으로 경감이 되지 않는다."
 };
 
-// 클라이언트 카드 DB (덱 편집기용)
 const CARD_DB = [
     { name: "재빠른 일격", cost: 100, textTemplate: "10 피해를 준다.", type: "basic" },
     { name: "굳건한 수비", cost: 100, textTemplate: "9 보호막을 얻는다.", type: "basic" },
@@ -60,10 +60,8 @@ const CARD_DB = [
     { name: "쿠키 뺏어먹기", cost: 100, req: "enemyDrew", textTemplate: "전 턴에 상대가 카드의 효과로 드로우 했다면 이 카드를 사용할 수 있다. 카드를 2장 드로우 한다. 에너지를 150 회복한다.", type: "other" }
 ];
 
-// 덱 에디터 상태
 let myDeckSetup = { standby: [null, null], subStandby: [null, null, null, null, null, null] };
 
-// UI Elements
 const lobbyScreen = document.getElementById('lobby-screen');
 const gameScreen = document.getElementById('game-screen');
 const matchBtn = document.getElementById('match-btn');
@@ -82,7 +80,6 @@ function showBanner(text, duration = 1200) {
     bannerTimeout = setTimeout(() => { bannerLayer.classList.add('hidden'); }, duration);
 }
 
-// 탭 전환 로직
 document.getElementById('tab-match').addEventListener('click', () => {
     document.getElementById('tab-match').classList.add('active'); document.getElementById('tab-deck').classList.remove('active');
     document.getElementById('lobby-match-view').classList.remove('hidden'); document.getElementById('lobby-deck-view').classList.add('hidden');
@@ -93,7 +90,6 @@ document.getElementById('tab-deck').addEventListener('click', () => {
     renderDeckEditor();
 });
 
-// 키워드 파싱 함수
 function colorize(text) {
     let colored = text;
     Object.keys(KEYWORDS_DESC).forEach(k => {
@@ -125,7 +121,6 @@ function showPreviewWithKeywords(card, previewBoxId, keywordBoxId, keywordListId
     }
 }
 
-// 덱 에디터 렌더링
 function renderDeckEditor(searchText = "", sortByCost = false) {
     const basicSlots = document.getElementById('slots-basic');
     basicSlots.innerHTML = "";
@@ -192,7 +187,7 @@ matchBtn.addEventListener('click', () => {
 socket.on('matching', () => { document.getElementById('status-text').innerText = "매칭 중..."; matchBtn.disabled = true; });
 socket.on('gameStart', ({ roomId, gameState }) => {
     currentRoomId = roomId; myId = socket.id;
-    previousHandIds = []; // 게임 시작 시 초기화
+    previousHandIds = []; 
     lobbyScreen.classList.add('hidden'); gameScreen.classList.remove('hidden');
     updateUI(gameState);
 });
@@ -268,14 +263,43 @@ function updateUI(gameState) {
     const myHand = document.getElementById('my-hand');
     myHand.innerHTML = "";
     
+    // 🌟 순차적 딜레이를 주기 위한 카운터 변수
+    let newCardCounter = 0;
+
     me.hand.forEach((card, index) => {
         const playable = isPlayable(card, me);
         const cardEl = document.createElement('div');
         
-        // 🌟 이번 업데이트에 이 카드가 새로 추가된 카드인지 검사
         const isNewCard = !previousHandIds.includes(card.instanceId);
         
-        cardEl.className = `card-frame ${playable ? 'card-playable' : 'card-unplayable'} ${isNewCard ? 'card-just-drawn' : ''}`;
+        if (isNewCard) {
+            // 🌟 새 카드일 경우: 순서에 따라 0.4초씩 딜레이(시차)를 더해줍니다.
+            const delaySec = newCardCounter * 0.4;
+            
+            cardEl.className = `card-frame ${playable ? 'card-playable' : 'card-unplayable'} card-just-drawn`;
+            cardEl.style.animationDelay = `${delaySec}s`; // CSS 애니메이션 출발 지연
+            
+            // 🌟 딜레이된 시간에 맞춰 정확히 소리 재생!
+            setTimeout(() => {
+                const snd = sfxCardDraw.cloneNode();
+                snd.volume = 0.6;
+                snd.play().catch(e => console.log("자동재생 방지:", e));
+            }, delaySec * 1000);
+
+            // 🌟 애니메이션이 모두 끝나면 클래스를 제거하여 원래 상태로 복구
+            setTimeout(() => {
+                if (cardEl) {
+                    cardEl.classList.remove('card-just-drawn');
+                    cardEl.style.animationDelay = '0s'; // 초기화
+                }
+            }, (delaySec * 1000) + 400);
+
+            newCardCounter++;
+        } else {
+            // 기존에 있던 카드는 딜레이나 효과음 없이 그대로 렌더링
+            cardEl.className = `card-frame ${playable ? 'card-playable' : 'card-unplayable'}`;
+        }
+
         cardEl.style.zIndex = index; cardEl.draggable = playable; cardEl.dataset.instanceId = card.instanceId;
 
         cardEl.innerHTML = `<div class="card-cost-badge">${card.cost}</div><div class="card-name-label">${card.name}</div><div class="card-effect-text">${colorize(card.textTemplate)}</div>`;
@@ -285,14 +309,8 @@ function updateUI(gameState) {
             else e.dataTransfer.setData('text/plain', card.instanceId);
         });
         myHand.appendChild(cardEl);
-        
-        // 🌟 애니메이션이 끝나면 호버링을 위해 클래스 제거
-        if (isNewCard) {
-            setTimeout(() => { if (cardEl) cardEl.classList.remove('card-just-drawn'); }, 400);
-        }
     });
     
-    // 🌟 렌더링이 끝나면 현재 패를 '이전 패'로 기억해둠
     previousHandIds = me.hand.map(c => c.instanceId);
 }
 
