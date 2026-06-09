@@ -37,7 +37,8 @@ body { background-color: #0d1117; color: #c9d1d9; height: 100vh; display: flex; 
 .empty-slot { width: 100px; height: 140px; border: 2px dashed #484f58; border-radius: 6px; display: flex; justify-content: center; align-items: center; background: #0d1117; cursor: pointer; }
 .empty-slot.hover { border-color: #58a6ff; background: rgba(56, 139, 253, 0.1); }
 .slot-card { width: 100px; height: 140px; position: relative; cursor: pointer; overflow: hidden; border-radius: 6px; box-sizing: border-box; }
-.slot-card::before { content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: url('images/card-frame.png') no-content no-repeat center/contain; z-index: 5; pointer-events: none; }
+/* 🌟 오류 수정 완료: 올바른 background 문법 적용 🌟 */
+.slot-card::before { content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: url('images/card-frame.png') no-repeat center center / contain; z-index: 5; pointer-events: none; }
 .slot-card-name { position: absolute; top: 12px; width: 100%; text-align: center; color: #f0f6fc; font-weight: bold; font-size: 10px; z-index: 10; left:0; }
 .slot-card-cost { position: absolute; top: 30px; width: 100%; text-align: center; color: #58a6ff; font-weight: bold; font-size: 8px; z-index: 10; left:0;}
 
@@ -83,7 +84,6 @@ body { background-color: #0d1117; color: #c9d1d9; height: 100vh; display: flex; 
 
 .hand-container { flex-grow: 1; display: flex; justify-content: center; align-items: flex-end; padding-bottom: 25px; margin-left: -60px; position: relative; z-index: 50; }
 
-/* 🌟 카드의 전체적인 크기 확대 및 커스텀 틀 적용 🌟 */
 .card-frame { 
     width: 200px; 
     height: 280px; 
@@ -101,22 +101,19 @@ body { background-color: #0d1117; color: #c9d1d9; height: 100vh; display: flex; 
 .card-playable { box-shadow: 0 0 10px rgba(56, 139, 253, 0.5); }
 .card-unplayable { opacity: 0.8; } 
 
-/* 🌟 커스텀 테두리 적용 🌟 */
+/* 🌟 오류 수정 완료: 올바른 background 문법 적용 🌟 */
 .card-frame::before {
     content: "";
     position: absolute;
     top: 0; left: 0; width: 100%; height: 100%;
-    background: url('images/card-frame.png') no-content no-repeat center/contain;
+    background: url('images/card-frame.png') no-repeat center center / contain;
     z-index: 5;
     pointer-events: none; 
 }
 
-/* 🌟 텍스트 배치 규칙: 비율(%)로 변경하여 축소되어도 안 깨지게 만듦 🌟 */
-
-/* 1. 카드명: 위쪽 두루마리 */
 .card-name-label { 
     position: absolute;
-    top: 6%; /* 비율 적용 */
+    top: 6%; 
     width: 100%;
     text-align: center;
     font-size: 18px; 
@@ -126,11 +123,10 @@ body { background-color: #0d1117; color: #c9d1d9; height: 100vh; display: flex; 
     left:0;
 }
 
-/* 2. 에너지 비용: 파란색 괄호 */
 .card-cost-badge { 
     position: absolute;
-    top: 13%; /* 비율 적용 */
-    left: 8%; /* 비율 적용 */
+    top: 13%; 
+    left: 8%; 
     color: #58a6ff !important; 
     font-size: 11px; 
     font-weight: bold;
@@ -138,13 +134,12 @@ body { background-color: #0d1117; color: #c9d1d9; height: 100vh; display: flex; 
     width: auto; height: auto; border:none; background:none; box-shadow:none;
 }
 
-/* 3. 효과 설명: 밑에 두루마리 */
 .card-effect-text { 
     position: absolute;
-    bottom: 6%; /* 비율 적용 */
-    left: 8%; /* 양옆 여백 비율 적용 */
+    bottom: 6%; 
+    left: 8%; 
     right: 8%;
-    height: 32%; /* 두루마리 높이 비율 */
+    height: 32%; 
     display: flex;
     align-items: center; 
     justify-content: center; 
@@ -157,7 +152,50 @@ body { background-color: #0d1117; color: #c9d1d9; height: 100vh; display: flex; 
     overflow-y: auto; 
 }
 
-/* 🌟 스크롤바 디자인 (큰 카드용 얇은 스크롤) 🌟 */
 .card-effect-text::-webkit-scrollbar { width: 4px; }
 .card-effect-text::-webkit-scrollbar-track { background: transparent; }
-.
+.card-effect-text::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.2); border-radius: 4px; }
+
+.card-frame::after {
+    content: "";
+    position: absolute;
+    top: 10px; left: 10px; right: 10px; bottom: 10px;
+    z-index: 0;
+    border-radius: 8px;
+}
+.card-frame.basic-type::after { background: #1f242c; }
+.card-frame.standby-type::after { background: #3d2a0d; }
+.card-frame.basic-type.card-unplayable { opacity: 0.7; }
+.card-frame.standby-type.card-unplayable { opacity: 0.7; }
+
+/* 모달창 */
+.modal { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.85); display: flex; justify-content: center; align-items: center; z-index: 4000; }
+.modal-wrapper { display: flex; width: 1000px; height: 700px; background: rgba(22, 27, 34, 0.95); border: 2px solid #30363d; border-radius: 12px; padding: 30px; position: relative; }
+.close-btn { position: absolute; top: 18px; right: 18px; background: #f85149; border: none; color: white; padding: 10px 15px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 16px; }
+.modal-left { width: 35%; border-right: 1px solid #484f58; padding-right: 25px; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 25px; }
+.modal-right { width: 65%; padding-left: 25px; display: flex; flex-direction: column; }
+.card-grid { flex-grow: 1; overflow-y: auto; display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; padding: 10px; align-content: start; }
+
+.grid-card { width: 140px; height: 196px; margin-left: 0; transform: none; box-shadow: 0 4px 8px rgba(0,0,0,0.6); cursor: pointer; overflow:hidden; border:none; }
+.grid-card::before { background-size: contain; z-index: 5; pointer-events: none; }
+.grid-card:hover { transform: scale(1.05); z-index: 10; box-shadow: 0 0 10px rgba(56, 139, 253, 0.6); }
+.grid-card.selected { box-shadow: 0 0 20px rgba(241, 196, 15, 0.9); }
+
+.grid-card .card-name-label { font-size: 13px; }
+.grid-card .card-cost-badge { font-size: 9px; top: 14%; left: 8%; }
+.grid-card .card-effect-text { 
+    font-size: 10px; 
+    line-height: 1.2; 
+    word-break: break-word; 
+    overflow: hidden; 
+}
+
+.action-btn { background: #238636; color: white; border: none; padding: 15px 25px; border-radius: 6px; cursor: pointer; font-size: 18px; font-weight: bold; width: 80%; }
+.action-btn:hover { background: #2ea043; }
+.action-btn:disabled { background: #484f58; color: #8b949e; cursor: not-allowed; }
+
+@keyframes drawCardAnim {
+    0% { opacity: 0; transform: translate(400px, 80px) scale(0.1) rotate(30deg); }
+    100% { opacity: 1; transform: translate(0, 0) scale(1) rotate(0deg); }
+}
+.card-just-drawn { animation: drawCardAnim 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) backwards; }
