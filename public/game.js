@@ -11,9 +11,11 @@ let pendingMagicCardId = null;
 
 let previousHandIds = [];
 
+// 사운드 이펙트 불러오기
 const sfxCardDraw = new Audio('audio/sfx/card-draw.ogg');
 sfxCardDraw.volume = 0.6; 
 
+// 키워드 사전
 const KEYWORDS_DESC = {
     "피해": "상대의 체력을 이 수치만큼 감소시킨다.",
     "보호막": "다음 상대 턴 종료시까지, 상대의 피해를 이 수치만큼 경감한다.",
@@ -90,6 +92,7 @@ document.getElementById('tab-deck').addEventListener('click', () => {
     renderDeckEditor();
 });
 
+// 키워드 하이라이팅
 function colorize(text) {
     let colored = text;
     Object.keys(KEYWORDS_DESC).forEach(k => {
@@ -99,18 +102,29 @@ function colorize(text) {
     return colored;
 }
 
+// 🌟 커스텀 테두리가 적용된 카드 HTML 구조 생성 함수 🌟
+function createCardHTML(card) {
+    // 테두리 아래에 깔릴 기본 배경색을 위한 클래스 (CSS에서 색상 지정)
+    const typeClass = card.type === 'basic' ? 'basic-type' : 'standby-type';
+    
+    // 기획자님의 배치 규칙에 맞춘 HTML 구조
+    return `
+        <div class="card-frame ${typeClass}" data-instance-id="${card.instanceId}">
+            <div class="card-cost-badge">(에너지 비용 : ${card.cost})</div>
+            <div class="card-name-label">${card.name}</div>
+            <div class="card-effect-text">${colorize(card.textTemplate)}</div>
+            <div class="card-image-area"></div>
+        </div>
+    `;
+}
+
 function showPreviewWithKeywords(card, previewBoxId, keywordBoxId, keywordListId) {
     const pBox = document.getElementById(previewBoxId);
     const kBox = document.getElementById(keywordBoxId);
     const kList = document.getElementById(keywordListId);
 
-    pBox.innerHTML = `
-        <div class="card-frame" style="width:100%; height:100%; transform:none; margin:0; cursor:default; box-shadow:none;">
-            <div class="card-cost-badge" style="width:40px; height:40px; font-size:18px; top:-15px; left:-15px;">${card.cost}</div>
-            <div class="card-name-label" style="font-size:18px; margin-top:20px; color:#58a6ff;">${card.name}</div>
-            <div class="card-effect-text" style="font-size:14px; margin-top:30px;">${colorize(card.textTemplate)}</div>
-        </div>
-    `;
+    // 프리뷰 박스에도 커스텀 카드 틀 적용
+    pBox.innerHTML = createCardHTML({...card, transform: 'none', margin: 0, cursor: 'default'});
 
     let foundKeys = Object.keys(KEYWORDS_DESC).filter(k => (card.name + card.textTemplate).includes(k));
     if(foundKeys.length > 0) {
@@ -121,12 +135,14 @@ function showPreviewWithKeywords(card, previewBoxId, keywordBoxId, keywordListId
     }
 }
 
+// 덱 에디터 렌더링
 function renderDeckEditor(searchText = "", sortByCost = false) {
     const basicSlots = document.getElementById('slots-basic');
     basicSlots.innerHTML = "";
     CARD_DB.filter(c => c.type === 'basic').forEach(c => {
-        const el = document.createElement('div'); el.className = 'slot-card';
-        el.innerHTML = `<div style="font-size:10px; font-weight:bold;">${c.cost}</div><div style="font-size:11px;">${c.name}</div>`;
+        // 슬롯의 카드는 미니 버전 HTML 구조 생성
+        const el = document.createElement('div'); el.className = 'slot-card basic-type'; 
+        el.innerHTML = `<div class="slot-card-name">${c.name}</div><div class="slot-card-cost">(${c.cost})</div>`;
         el.addEventListener('mouseenter', () => showPreviewWithKeywords(c, 'edit-preview', 'edit-keywords', 'edit-keyword-list'));
         basicSlots.appendChild(el);
     });
@@ -136,13 +152,15 @@ function renderDeckEditor(searchText = "", sortByCost = false) {
         arr.forEach((cardName, idx) => {
             if(cardName) {
                 const c = CARD_DB.find(x => x.name === cardName);
-                const el = document.createElement('div'); el.className = 'slot-card';
-                el.innerHTML = `<div style="font-size:10px; font-weight:bold;">${c.cost}</div><div style="font-size:11px;">${c.name}</div>`;
+                const el = document.createElement('div'); el.className = 'slot-card standby-type';
+                el.innerHTML = `<div class="slot-card-name">${c.name}</div><div class="slot-card-cost">(${c.cost})</div>`;
                 el.addEventListener('mouseenter', () => showPreviewWithKeywords(c, 'edit-preview', 'edit-keywords', 'edit-keyword-list'));
                 el.addEventListener('contextmenu', (e) => { e.preventDefault(); arr[idx] = null; renderDeckEditor(); });
                 container.appendChild(el);
             } else {
-                const el = document.createElement('div'); el.className = 'empty-slot'; el.dataset.type = type; el.dataset.index = idx;
+                // 빈 슬롯은 가운데 이미지가 들어갈 공간임을 대각선 줄무늬 등으로 표시합니다 (style.css에서 처리)
+                const el = document.createElement('div'); el.className = 'empty-slot card-image-placeholder'; el.dataset.type = type; el.dataset.index = idx;
+                el.innerHTML = '<span style="font-size:24px; color:#30363d;">+</span>';
                 el.addEventListener('dragover', e => { e.preventDefault(); el.classList.add('hover'); });
                 el.addEventListener('dragleave', () => el.classList.remove('hover'));
                 el.addEventListener('drop', e => {
@@ -166,11 +184,22 @@ function renderDeckEditor(searchText = "", sortByCost = false) {
     const poolContainer = document.getElementById('edit-card-pool');
     poolContainer.innerHTML = "";
     pool.forEach(c => {
-        const el = document.createElement('div'); el.className = 'card-frame grid-card'; el.draggable = true;
-        el.innerHTML = `<div class="card-cost-badge">${c.cost}</div><div class="card-name-label">${c.name}</div><div class="card-effect-text" style="font-size:10px;">${colorize(c.textTemplate)}</div>`;
-        el.addEventListener('mouseenter', () => showPreviewWithKeywords(c, 'edit-preview', 'edit-keywords', 'edit-keyword-list'));
-        el.addEventListener('dragstart', e => e.dataTransfer.setData('text/plain', c.name));
-        poolContainer.appendChild(el);
+        // 풀의 카드도 커스텀 틀 적용 HTML 구조 생성
+        const cardContainer = document.createElement('div'); cardContainer.className = 'grid-card-container'; cardContainer.draggable = true;
+        cardContainer.addEventListener('mouseenter', () => showPreviewWithKeywords(c, 'edit-preview', 'edit-keywords', 'edit-keyword-list'));
+        cardContainer.addEventListener('dragstart', e => e.dataTransfer.setData('text/plain', c.name));
+        
+        // 커스텀 테두리를 씌운 카드 HTML을 얹습니다
+        const typeClass = c.type === 'basic' ? 'basic-type' : 'standby-type';
+        cardContainer.innerHTML = `
+            <div class="grid-card card-frame ${typeClass}">
+                <div class="card-cost-badge">(에너지 비용 : ${c.cost})</div>
+                <div class="card-name-label">${c.name}</div>
+                <div class="card-effect-text">${colorize(c.textTemplate)}</div>
+                <div class="card-image-area"></div>
+            </div>
+        `;
+        poolContainer.appendChild(cardContainer);
     });
 }
 
@@ -263,11 +292,11 @@ function updateUI(gameState) {
     const myHand = document.getElementById('my-hand');
     myHand.innerHTML = "";
     
-    // 🌟 순차적 딜레이를 주기 위한 카운터 변수
+    // 순차적 딜레이를 주기 위한 카운터 변수
     let newCardCounter = 0;
 
     me.hand.forEach((card, index) => {
-        const playable = isPlayable(card, me);
+        constplayable = isPlayable(card, me);
         const cardEl = document.createElement('div');
         
         const isNewCard = !previousHandIds.includes(card.instanceId);
@@ -276,8 +305,18 @@ function updateUI(gameState) {
             // 🌟 새 카드일 경우: 순서에 따라 0.4초씩 딜레이(시차)를 더해줍니다.
             const delaySec = newCardCounter * 0.4;
             
-            cardEl.className = `card-frame ${playable ? 'card-playable' : 'card-unplayable'} card-just-drawn`;
+            // 🌟 커스텀 테두리가 적용된 카드 HTML을 생성합니다 🌟
+            const typeClass = card.type === 'basic' ? 'basic-type' : 'standby-type';
+            cardEl.className = `card-frame ${typeClass} ${playable ? 'card-playable' : 'card-unplayable'} card-just-drawn`;
             cardEl.style.animationDelay = `${delaySec}s`; // CSS 애니메이션 출발 지연
+            cardEl.style.zIndex = index; cardEl.draggable = playable; cardEl.dataset.instanceId = card.instanceId;
+            
+            cardEl.innerHTML = `
+                <div class="card-cost-badge">(에너지 비용 : ${card.cost})</div>
+                <div class="card-name-label">${card.name}</div>
+                <div class="card-effect-text">${colorize(card.textTemplate)}</div>
+                <div class="card-image-area"></div>
+            `;
             
             // 🌟 딜레이된 시간에 맞춰 정확히 소리 재생!
             setTimeout(() => {
@@ -297,12 +336,19 @@ function updateUI(gameState) {
             newCardCounter++;
         } else {
             // 기존에 있던 카드는 딜레이나 효과음 없이 그대로 렌더링
-            cardEl.className = `card-frame ${playable ? 'card-playable' : 'card-unplayable'}`;
+            const typeClass = card.type === 'basic' ? 'basic-type' : 'standby-type';
+            cardEl.className = `card-frame ${typeClass} ${playable ? 'card-playable' : 'card-unplayable'}`;
+            cardEl.style.zIndex = index; cardEl.draggable = playable; cardEl.dataset.instanceId = card.instanceId;
+            
+            cardEl.innerHTML = `
+                <div class="card-cost-badge">(에너지 비용 : ${card.cost})</div>
+                <div class="card-name-label">${card.name}</div>
+                <div class="card-effect-text">${colorize(card.textTemplate)}</div>
+                <div class="card-image-area"></div>
+            `;
         }
 
-        cardEl.style.zIndex = index; cardEl.draggable = playable; cardEl.dataset.instanceId = card.instanceId;
-
-        cardEl.innerHTML = `<div class="card-cost-badge">${card.cost}</div><div class="card-name-label">${card.name}</div><div class="card-effect-text">${colorize(card.textTemplate)}</div>`;
+        // 클릭 및 드래그 이벤트 연결
         cardEl.addEventListener('click', () => showPreviewWithKeywords(card, 'card-preview-box', 'game-keywords', 'game-keyword-list'));
         cardEl.addEventListener('dragstart', (e) => {
             if(!playable) e.preventDefault();
@@ -364,17 +410,25 @@ function openModal(title, cardArray, shuffle = false, mode = 'view', reqCount = 
     let displayArray = [...cardArray]; if (shuffle) displayArray.sort(() => Math.random() - 0.5);
 
     displayArray.forEach(card => {
-        const el = document.createElement('div'); el.className = 'card-frame grid-card';
-        el.innerHTML = `<div class="card-cost-badge">${card.cost}</div><div class="card-name-label">${card.name}</div><div class="card-effect-text" style="font-size:10px;">${colorize(card.textTemplate)}</div>`;
-        el.addEventListener('click', () => {
-            modalPreview.innerHTML = `
-                <div class="card-frame" style="width:200px; height:280px; transform:none; margin:auto; cursor:default;">
-                    <div class="card-cost-badge" style="width:36px; height:36px; font-size:16px; top:-12px; left:-12px;">${card.cost}</div>
-                    <div class="card-name-label" style="font-size:18px; margin-top:15px; color:#58a6ff;">${card.name}</div>
-                    <div class="card-effect-text" style="font-size:13px; margin-top:20px;">${colorize(card.textTemplate)}</div>
-                </div>
-            `;
+        const cardContainer = document.createElement('div'); cardContainer.className = 'grid-card-container';
+        
+        // 🌟 모달 내 카드도 커스텀 틀 적용 HTML 구조 생성 🌟
+        const typeClass = card.type === 'basic' ? 'basic-type' : 'standby-type';
+        cardContainer.innerHTML = `
+            <div class="grid-card card-frame ${typeClass}">
+                <div class="card-cost-badge">(에너지 비용 : ${card.cost})</div>
+                <div class="card-name-label">${card.name}</div>
+                <div class="card-effect-text">${colorize(card.textTemplate)}</div>
+                <div class="card-image-area"></div>
+            </div>
+        `;
+
+        cardContainer.addEventListener('click', () => {
+            // 프리뷰 박스에도 커스텀 카드 틀 적용
+            modalPreview.innerHTML = createCardHTML({...card, transform: 'none', margin: 'auto', cursor: 'default'});
+
             if(mode === 'magicSelect') {
+                const el = cardContainer.querySelector('.grid-card');
                 if (el.classList.contains('selected')) {
                     el.classList.remove('selected'); selectedDiscardIds = selectedDiscardIds.filter(id => id !== card.instanceId);
                 } else if (selectedDiscardIds.length < requiredDiscardCount) {
@@ -384,10 +438,10 @@ function openModal(title, cardArray, shuffle = false, mode = 'view', reqCount = 
             } 
             else if(mode === 'standby') {
                 document.querySelectorAll('.grid-card').forEach(c => c.classList.remove('selected'));
-                el.classList.add('selected'); selectedDiscardIds = [card.instanceId]; confirmBtn.disabled = false;
+                cardContainer.querySelector('.grid-card').classList.add('selected'); selectedDiscardIds = [card.instanceId]; confirmBtn.disabled = false;
             }
         });
-        modalGrid.appendChild(el);
+        modalGrid.appendChild(cardContainer);
     });
     modal.classList.remove('hidden');
 }
