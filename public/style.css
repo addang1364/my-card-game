@@ -2,7 +2,7 @@
 body { background-color: #0d1117; color: #c9d1d9; height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; overflow: hidden; }
 .hidden { display: none !important; }
 
-.kw-orange { color: #f39c12; font-weight: bold; }
+.kw-orange { color: #d35400; font-weight: bold; } /* 까만 글씨에 어울리게 주황색을 살짝 진하게 조정 */
 
 #toast-layer { position: fixed; top: 20px; z-index: 5000; display: flex; flex-direction: column; gap: 10px; align-items: center; pointer-events: none; }
 .toast-msg { background: rgba(22, 27, 34, 0.95); border: 1px solid #30363d; padding: 12px 24px; border-radius: 6px; font-size: 16px; font-weight: bold; animation: fadeInOut 3s forwards; }
@@ -37,10 +37,9 @@ body { background-color: #0d1117; color: #c9d1d9; height: 100vh; display: flex; 
 .empty-slot { width: 100px; height: 140px; border: 2px dashed #484f58; border-radius: 6px; display: flex; justify-content: center; align-items: center; background: #0d1117; cursor: pointer; }
 .empty-slot.hover { border-color: #58a6ff; background: rgba(56, 139, 253, 0.1); }
 .slot-card { width: 100px; height: 140px; position: relative; cursor: pointer; overflow: hidden; border-radius: 6px; box-sizing: border-box; }
-/* 🌟 오류 수정 완료: 올바른 background 문법 적용 🌟 */
 .slot-card::before { content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: url('images/card-frame.png') no-repeat center center / contain; z-index: 5; pointer-events: none; }
-.slot-card-name { position: absolute; top: 12px; width: 100%; text-align: center; color: #f0f6fc; font-weight: bold; font-size: 10px; z-index: 10; left:0; }
-.slot-card-cost { position: absolute; top: 30px; width: 100%; text-align: center; color: #58a6ff; font-weight: bold; font-size: 8px; z-index: 10; left:0;}
+.slot-card-name { position: absolute; top: 12px; width: 100%; text-align: center; color: #111; font-weight: bold; font-size: 10px; z-index: 10; left:0; }
+.slot-card-cost { position: absolute; top: 30px; width: 100%; text-align: center; color: #0969da; font-weight: bold; font-size: 8px; z-index: 10; left:0;}
 
 .filter-bar { display: flex; gap: 10px; margin-bottom: 20px; }
 #edit-search { flex-grow: 1; padding: 15px; border-radius: 6px; border: 1px solid #30363d; background: #0d1117; color: #fff; font-size: 16px; }
@@ -101,7 +100,6 @@ body { background-color: #0d1117; color: #c9d1d9; height: 100vh; display: flex; 
 .card-playable { box-shadow: 0 0 10px rgba(56, 139, 253, 0.5); }
 .card-unplayable { opacity: 0.8; } 
 
-/* 🌟 오류 수정 완료: 올바른 background 문법 적용 🌟 */
 .card-frame::before {
     content: "";
     position: absolute;
@@ -111,6 +109,7 @@ body { background-color: #0d1117; color: #c9d1d9; height: 100vh; display: flex; 
     pointer-events: none; 
 }
 
+/* 🌟 글씨 까만색 & 텍스트 낑김 해결 🌟 */
 .card-name-label { 
     position: absolute;
     top: 6%; 
@@ -118,7 +117,7 @@ body { background-color: #0d1117; color: #c9d1d9; height: 100vh; display: flex; 
     text-align: center;
     font-size: 18px; 
     font-weight: bold;
-    color: #f0f6fc;
+    color: #111; /* 까만색 */
     z-index: 10;
     left:0;
 }
@@ -127,7 +126,7 @@ body { background-color: #0d1117; color: #c9d1d9; height: 100vh; display: flex; 
     position: absolute;
     top: 13%; 
     left: 8%; 
-    color: #58a6ff !important; 
+    color: #0969da !important; /* 가독성을 위한 진한 파란색 */
     font-size: 11px; 
     font-weight: bold;
     z-index: 10;
@@ -137,15 +136,16 @@ body { background-color: #0d1117; color: #c9d1d9; height: 100vh; display: flex; 
 .card-effect-text { 
     position: absolute;
     bottom: 6%; 
-    left: 8%; 
-    right: 8%;
+    left: 12%; /* 여백을 살짝 넓혀서 글씨가 넉넉하게 들어가게 함 */
+    right: 12%;
+    width: 76%;
     height: 32%; 
     display: flex;
     align-items: center; 
     justify-content: center; 
     text-align: center;
     font-size: 14px; 
-    color: #c9d1d9;
+    color: #111; /* 까만색 */
     line-height: 1.4;
     word-break: keep-all; 
     z-index: 10;
@@ -154,7 +154,7 @@ body { background-color: #0d1117; color: #c9d1d9; height: 100vh; display: flex; 
 
 .card-effect-text::-webkit-scrollbar { width: 4px; }
 .card-effect-text::-webkit-scrollbar-track { background: transparent; }
-.card-effect-text::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.2); border-radius: 4px; }
+.card-effect-text::-webkit-scrollbar-thumb { background: rgba(0, 0, 0, 0.2); border-radius: 4px; } /* 스크롤바도 까맣게 */
 
 .card-frame::after {
     content: "";
@@ -181,13 +181,15 @@ body { background-color: #0d1117; color: #c9d1d9; height: 100vh; display: flex; 
 .grid-card:hover { transform: scale(1.05); z-index: 10; box-shadow: 0 0 10px rgba(56, 139, 253, 0.6); }
 .grid-card.selected { box-shadow: 0 0 20px rgba(241, 196, 15, 0.9); }
 
-.grid-card .card-name-label { font-size: 13px; }
+/* 🌟 작은 카드 내부 세밀 조정 🌟 */
+.grid-card .card-name-label { font-size: 12px; }
 .grid-card .card-cost-badge { font-size: 9px; top: 14%; left: 8%; }
 .grid-card .card-effect-text { 
-    font-size: 10px; 
-    line-height: 1.2; 
-    word-break: break-word; 
+    font-size: 10px; /* 사이즈 줄여서 낑김 완벽 방지 */
+    line-height: 1.3; 
+    word-break: keep-all; 
     overflow: hidden; 
+    left: 10%; width: 80%; /* 영역 최적화 */
 }
 
 .action-btn { background: #238636; color: white; border: none; padding: 15px 25px; border-radius: 6px; cursor: pointer; font-size: 18px; font-weight: bold; width: 80%; }

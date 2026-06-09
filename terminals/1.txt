@@ -1,8 +1,11 @@
 ---
-pid: 11820
+pid: 28352
 cwd: |
   C:\Users\round\.cursor\projects\empty-window
 ---
+PS C:\Users\round\.cursor\projects\empty-window> 
+ *  History restored 
+
 PS C:\Users\round\.cursor\projects\empty-window> 
  *  History restored 
 
