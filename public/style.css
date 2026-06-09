@@ -2,7 +2,7 @@
 body { background-color: #0d1117; color: #c9d1d9; height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; overflow: hidden; }
 .hidden { display: none !important; }
 
-.kw-orange { color: #f39c12; font-weight: bold; } /* 키워드 주황색 */
+.kw-orange { color: #f39c12; font-weight: bold; }
 
 #toast-layer { position: fixed; top: 20px; z-index: 5000; display: flex; flex-direction: column; gap: 10px; align-items: center; pointer-events: none; }
 .toast-msg { background: rgba(22, 27, 34, 0.95); border: 1px solid #30363d; padding: 12px 24px; border-radius: 6px; font-size: 16px; font-weight: bold; animation: fadeInOut 3s forwards; }
@@ -36,7 +36,6 @@ body { background-color: #0d1117; color: #c9d1d9; height: 100vh; display: flex; 
 .slots-row { display: flex; gap: 10px; flex-wrap: wrap; }
 .empty-slot { width: 100px; height: 140px; border: 2px dashed #484f58; border-radius: 6px; display: flex; justify-content: center; align-items: center; background: #0d1117; cursor: pointer; }
 .empty-slot.hover { border-color: #58a6ff; background: rgba(56, 139, 253, 0.1); }
-/* 슬롯의 카드는 실제 카드의 미니 버전처럼 보이게 테두리를 적용합니다 */
 .slot-card { width: 100px; height: 140px; position: relative; cursor: pointer; overflow: hidden; border-radius: 6px; box-sizing: border-box; }
 .slot-card::before { content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: url('images/card-frame.png') no-content no-repeat center/contain; z-index: 5; pointer-events: none; }
 .slot-card-name { position: absolute; top: 12px; width: 100%; text-align: center; color: #f0f6fc; font-weight: bold; font-size: 10px; z-index: 10; left:0; }
@@ -86,129 +85,79 @@ body { background-color: #0d1117; color: #c9d1d9; height: 100vh; display: flex; 
 
 /* 🌟 카드의 전체적인 크기 확대 및 커스텀 틀 적용 🌟 */
 .card-frame { 
-    width: 200px; /* 기존 160px -> 200px 확대 */
-    height: 280px; /* 기존 230px -> 280px 확대 */
+    width: 200px; 
+    height: 280px; 
     position: relative; 
     cursor: grab; 
     transition: transform 0.2s, z-index 0.2s; 
-    margin-left: -80px; /* 겹침폭 조절 */
+    margin-left: -80px; 
     box-shadow: -5px 0 15px rgba(0,0,0,0.7); 
-    overflow: hidden; /* 테두리 밖으로 배경이 나가지 않게 */
+    overflow: hidden; 
     box-sizing: border-box;
-    display: flex;
-    flex-direction: column;
 }
 
 .card-frame:first-child { margin-left: 0; }
 .card-frame:hover { transform: translateY(-70px); z-index: 300 !important; }
 .card-playable { box-shadow: 0 0 10px rgba(56, 139, 253, 0.5); }
-.card-unplayable { opacity: 0.8; } /* 조건 미달시 CSS로 판별 */
+.card-unplayable { opacity: 0.8; } 
 
-/* 🌟 커스텀 테두리 이미지를 ::before 가상 요소로 씌웁니다 🌟 */
+/* 🌟 커스텀 테두리 적용 🌟 */
 .card-frame::before {
     content: "";
     position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
+    top: 0; left: 0; width: 100%; height: 100%;
     background: url('images/card-frame.png') no-content no-repeat center/contain;
-    z-index: 5; /* 텍스트보다 아래, 배경보다 위 */
-    pointer-events: none; /* 테두리는 클릭되지 않게 */
+    z-index: 5;
+    pointer-events: none; 
 }
 
-/* 🌟 텍스트 배치 규칙 적용 🌟 */
+/* 🌟 텍스트 배치 규칙: 비율(%)로 변경하여 축소되어도 안 깨지게 만듦 🌟 */
 
-/* 1. 에너지 비용: 파란색 글씨로 작게 괄호 표기 */
-.card-cost-badge { 
-    position: absolute;
-    top: 35px; /* 규칙 사진의 (에너지비용) 위치 */
-    left: 15px;
-    color: #58a6ff !important; /* 파란색 */
-    font-size: 11px; /* 작게 */
-    font-weight: bold;
-    z-index: 10;
-    width: auto; height: auto; border:none; background:none; box-shadow:none;
-}
-
-/* 2. 카드명: 위쪽 두루마리 가운데 정렬 */
+/* 1. 카드명: 위쪽 두루마리 */
 .card-name-label { 
     position: absolute;
-    top: 18px; /* 규칙 사진의 카드명 위치 */
+    top: 6%; /* 비율 적용 */
     width: 100%;
-    text-align: center; /* 가운데 정렬 */
-    font-size: 18px; /* 폰트 크기 증대 */
+    text-align: center;
+    font-size: 18px; 
     font-weight: bold;
     color: #f0f6fc;
     z-index: 10;
     left:0;
 }
 
-/* 3. 효과 설명: 밑에 두루마리 위아래 가운데 정렬 */
+/* 2. 에너지 비용: 파란색 괄호 */
+.card-cost-badge { 
+    position: absolute;
+    top: 13%; /* 비율 적용 */
+    left: 8%; /* 비율 적용 */
+    color: #58a6ff !important; 
+    font-size: 11px; 
+    font-weight: bold;
+    z-index: 10;
+    width: auto; height: auto; border:none; background:none; box-shadow:none;
+}
+
+/* 3. 효과 설명: 밑에 두루마리 */
 .card-effect-text { 
     position: absolute;
-    bottom: 15px; /* 규칙 사진의 효과설명란 위치 */
-    left: 15px;
-    width: 170px; /* 카드 폭에 맞춤 */
-    height: 90px; /* 두루마리 높이 */
+    bottom: 6%; /* 비율 적용 */
+    left: 8%; /* 양옆 여백 비율 적용 */
+    right: 8%;
+    height: 32%; /* 두루마리 높이 비율 */
     display: flex;
-    align-items: center; /* 위아래 가운데 정렬 */
-    justify-content: center; /* 가로 가운데 정렬 */
+    align-items: center; 
+    justify-content: center; 
     text-align: center;
-    font-size: 14px; /* 폰트 크기 증대 */
+    font-size: 14px; 
     color: #c9d1d9;
     line-height: 1.4;
-    word-break: keep-all; /* 단어 단위 줄바꿈 */
+    word-break: keep-all; 
     z-index: 10;
-    overflow-y: auto; /* 설명이 길면 스크롤 */
+    overflow-y: auto; 
 }
 
-/* 카드의 기본 배경색 세팅 (테두리 아래) */
-.card-frame::after {
-    content: "";
-    position: absolute;
-    top: 10px; left: 10px; right: 10px; bottom: 10px;
-    z-index: 0;
-    border-radius: 8px;
-}
-/* 기본 카드: 어두운 회색 */
-.card-frame.basic-type::after { background: #1f242c; }
-/* 스탠바이 카드: 어두운 주황색 */
-.card-frame.standby-type::after { background: #3d2a0d; }
-/* 기본 카드는 틀색에 맞춰 조건미달 빨간 테두리 제외 */
-.card-frame.basic-type.card-unplayable { opacity: 0.7; }
-/* 스탠바이 카드는 테두리 이미지를 씌운게 아니라 ::before로 얹은거라unplayable 테두리색 변경 불가능, opacity로 조절 */
-.card-frame.standby-type.card-unplayable { opacity: 0.7; }
-
-/* 모달창 */
-.modal { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.85); display: flex; justify-content: center; align-items: center; z-index: 4000; }
-.modal-wrapper { display: flex; width: 1000px; height: 700px; background: rgba(22, 27, 34, 0.95); border: 2px solid #30363d; border-radius: 12px; padding: 30px; position: relative; }
-.close-btn { position: absolute; top: 18px; right: 18px; background: #f85149; border: none; color: white; padding: 10px 15px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 16px; }
-.modal-left { width: 35%; border-right: 1px solid #484f58; padding-right: 25px; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 25px; }
-.modal-right { width: 65%; padding-left: 25px; display: flex; flex-direction: column; }
-.card-grid { flex-grow: 1; overflow-y: auto; display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; padding: 10px; align-content: start; }
-/* 모달 내 카드도 커스텀 틀 적용 */
-.grid-card { width: 140px; height: 196px; margin-left: 0; transform: none; box-shadow: 0 4px 8px rgba(0,0,0,0.6); cursor: pointer; overflow:hidden; border:none; }
-.grid-card::before { background-size: contain; z-index: 5; pointer-events: none; }
-.grid-card:hover { transform: scale(1.05); z-index: 10; box-shadow: 0 0 10px rgba(56, 139, 253, 0.6); }
-.grid-card.selected { box-shadow: 0 0 20px rgba(241, 196, 15, 0.9); }
-/* 모달 내 텍스트 크기 조절 */
-.grid-card .card-name-label { font-size: 14px; top: 12px;}
-.grid-card .card-cost-badge { font-size: 9px; top: 25px; left: 10px;}
-.grid-card .card-effect-text { font-size: 10px; bottom: 10px; left: 10px; width: 120px; height: 60px;}
-
-.action-btn { background: #238636; color: white; border: none; padding: 15px 25px; border-radius: 6px; cursor: pointer; font-size: 18px; font-weight: bold; width: 80%; }
-.action-btn:hover { background: #2ea043; }
-.action-btn:disabled { background: #484f58; color: #8b949e; cursor: not-allowed; }
-
-/* 🌟 순차적 샥샥샥 카드 뽑기 애니메이션 🌟 */
-@keyframes drawCardAnim {
-    /* 우측 하단 덱 버튼 위치(350px, 80px)에서 작게(scale 0.1) 대기하다가 날아옵니다 */
-    0% { opacity: 0; transform: translate(400px, 80px) scale(0.1) rotate(30deg); }
-    100% { opacity: 1; transform: translate(0, 0) scale(1) rotate(0deg); }
-}
-
-.card-just-drawn {
-    /* backwards 속성: 대기 시간(Delay) 동안 카드가 미리 보이지 않게 숨겨줍니다 */
-    animation: drawCardAnim 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) backwards;
-}
+/* 🌟 스크롤바 디자인 (큰 카드용 얇은 스크롤) 🌟 */
+.card-effect-text::-webkit-scrollbar { width: 4px; }
+.card-effect-text::-webkit-scrollbar-track { background: transparent; }
+.
