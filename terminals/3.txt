@@ -1,0 +1,54 @@
+---
+pid: 10868
+cwd: |
+  C:\Users\round\.cursor\projects\empty-window
+---
+PS C:\Users\round\.cursor\projects\empty-window> git add .
+warning: in the working copy of 'mcps/cursor-app-control/INSTRUCTIONS.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'mcps/cursor-app-control/SERVER_METADATA.json',LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'mcps/cursor-app-control/tools/create_project.json', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'mcps/cursor-app-control/tools/move_agent_to_cloned_root.json', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'mcps/cursor-app-control/tools/move_agent_to_root.json', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'mcps/cursor-app-control/tools/open_automation.json', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'mcps/cursor-app-control/tools/rename_chat.json', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'mcps/cursor-ide-browser/INSTRUCTIONS.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'mcps/cursor-ide-browser/SERVER_METADATA.json',LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'mcps/cursor-ide-browser/tools/browser_cdp.json', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'mcps/cursor-ide-browser/tools/browser_click.json', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'mcps/cursor-ide-browser/tools/browser_drag.json', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'mcps/cursor-ide-browser/tools/browser_fill.json', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'mcps/cursor-ide-browser/tools/browser_get_bounding_box.json', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'mcps/cursor-ide-browser/tools/browser_highlight.json', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'mcps/cursor-ide-browser/tools/browser_lock.json', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'mcps/cursor-ide-browser/tools/browser_mouse_click_xy.json', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'mcps/cursor-ide-browser/tools/browser_navigate.json', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'mcps/cursor-ide-browser/tools/browser_press_key.json', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'mcps/cursor-ide-browser/tools/browser_scroll.json', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'mcps/cursor-ide-browser/tools/browser_select_option.json', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'mcps/cursor-ide-browser/tools/browser_snapshot.json', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'mcps/cursor-ide-browser/tools/browser_tabs.json', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'mcps/cursor-ide-browser/tools/browser_take_screenshot.json', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'mcps/cursor-ide-browser/tools/browser_type.json', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'terminals/1.txt', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'terminals/2.txt', LF will be replaced by CRLF the next time Git touches it
+PS C:\Users\round\.cursor\projects\empty-window> git commit -m "style: 글자 낑김 완화 및 까만색 폰트 적용"
+[main fbf2d96] style: 글자 낑김 완화 및 까만색 폰트 적용
+ 4 files changed, 30 insertions(+), 16 deletions(-)
+ create mode 100644 terminals/2.txt
+PS C:\Users\round\.cursor\projects\empty-window> git push
+Enumerating objects: 16, done.
+Counting objects: 100% (16/16), done.
+Delta compression using up to 12 threads
+Compressing objects: 100% (8/8), done.
+Writing objects: 100% (9/9), 222.25 KiB | 22.22 MiB/s, done.
+Total 9 (delta 4), reused 0 (delta 0), pack-reused 0 (from 0)
+remote: Resolving deltas: 100% (4/4), completed with 4 local objects.
+To https://github.com/addang1364/my-card-game.git
+   8b29244..fbf2d96  main -> main
+PS C:\Users\round\.cursor\projects\empty-window> 
+ *  History restored 
+
+PS C:\Users\round\.cursor\projects\empty-window> 
+ *  History restored 
+
+PS C:\Users\round\.cursor\projects\empty-window> 

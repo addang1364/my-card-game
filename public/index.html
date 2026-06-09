@@ -3,159 +3,146 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RPG Card Battle</title>
+    <title>Evolution TCG Arena v4</title>
     <link rel="stylesheet" href="style.css">
+    <script src="/socket.io/socket.io.js"></script>
 </head>
 <body>
-    <div id="toast-layer"></div>
-    <div id="banner-layer" class="hidden"><h1 id="banner-text"></h1></div>
+    <div id="app-wrapper">
+        <div id="toast-layer"></div>
+        <div id="banner-layer" class="hidden"><h1 id="banner-text"></h1></div>
 
-    <div id="lobby-screen">
-        <div class="lobby-header">
-            <h1 class="game-title">진화된 배틀 아레나 v3</h1>
-            <div class="lobby-tabs">
-                <button id="tab-match" class="active">매칭 화면</button>
-                <button id="tab-deck">덱 편집</button>
-            </div>
-        </div>
-
-        <div id="lobby-match-view" class="lobby-view">
-            <button id="match-btn">전투 참가</button>
-            <p id="status-text"></p>
-        </div>
-
-        <div id="lobby-deck-view" class="lobby-view hidden">
-            <div class="deck-edit-container">
-                <div class="edit-left">
-                    <div class="preview-area">
-                        <div id="edit-preview" class="preview-box">
-                            <p class="preview-placeholder">카드를 올려보세요</p>
-                        </div>
-                        <div id="edit-keywords" class="keyword-box hidden">
-                            <h3 style="color:#f39c12; margin-bottom:10px;">키워드 설명</h3>
-                            <div id="edit-keyword-list"></div>
-                        </div>
-                    </div>
-                    
-                    <div class="slots-container">
-                        <div class="slot-section">
-                            <h4>기본 카드 (고정 / 6장)</h4>
-                            <div class="slots-row" id="slots-basic"></div>
-                        </div>
-                        <div class="slot-section">
-                            <h4>스탠바이 카드 (게임 내 4장씩 복사 / 2칸)</h4>
-                            <div class="slots-row" id="slots-standby">
-                                <div class="empty-slot" data-type="standby" data-index="0"></div>
-                                <div class="empty-slot" data-type="standby" data-index="1"></div>
-                            </div>
-                        </div>
-                        <div class="slot-section">
-                            <h4>서브 스탠바이 카드 (게임 내 1장씩 / 6칸)</h4>
-                            <div class="slots-row" id="slots-substandby">
-                                <div class="empty-slot" data-type="substandby" data-index="0"></div>
-                                <div class="empty-slot" data-type="substandby" data-index="1"></div>
-                                <div class="empty-slot" data-type="substandby" data-index="2"></div>
-                                <div class="empty-slot" data-type="substandby" data-index="3"></div>
-                                <div class="empty-slot" data-type="substandby" data-index="4"></div>
-                                <div class="empty-slot" data-type="substandby" data-index="5"></div>
-                            </div>
-                        </div>
-                        <p style="font-size: 11px; color: #8b949e; margin-top:10px;">우측 목록에서 카드를 드래그하여 슬롯에 배치하세요. 우클릭으로 제거할 수 있습니다.<br>※ 스탠바이와 서브 스탠바이를 통틀어 중복된 카드는 넣을 수 없습니다.</p>
-                    </div>
-                </div>
-                <div class="edit-right">
-                    <div class="filter-bar">
-                        <input type="text" id="edit-search" placeholder="카드 이름이나 효과 검색...">
-                        <button id="edit-sort-btn">코스트 정렬</button>
-                    </div>
-                    <div id="edit-card-pool" class="card-grid"></div>
+        <div id="lobby-screen">
+            <div class="lobby-header">
+                <h1 class="game-title">RPG Card Battle Arena v4</h1>
+                <div class="lobby-tabs">
+                    <button id="tab-match" class="active">매칭 화면</button>
+                    <button id="tab-deck">덱 편집</button>
                 </div>
             </div>
-        </div>
-    </div>
 
-    <div id="game-screen" class="hidden">
-        <div id="enemy-area" class="player-zone">
-            <div class="deck-grave-info enemy-info-box">
-                <div class="info-btn" style="cursor:default;">덱 (<span id="enemy-deck-count">0</span>)</div>
-                <div id="enemy-standby-btn" class="info-btn">스탠바이 (<span id="enemy-standby-count">0</span>)</div>
-                <div id="enemy-grave-btn" class="info-btn">카드 무덤 (<span id="enemy-grave-count">0</span>)</div>
+            <div id="lobby-match-view" class="lobby-view">
+                <button id="match-btn">전투 참가</button>
+                <p id="status-text"></p>
             </div>
-            <div class="stats-panel">
-                <div class="panel-header"><span class="panel-title">상대방</span></div>
-                <div class="stat-bars">
+
+            <div id="lobby-deck-view" class="lobby-view hidden">
+                <div class="deck-edit-container">
+                    <div class="edit-left">
+                        <div class="preview-area">
+                            <div id="edit-preview" class="preview-box">
+                                <p class="preview-placeholder">카드를 올려보세요</p>
+                            </div>
+                            <div id="edit-keywords" class="keyword-box hidden">
+                                <h3 style="color:#A65E00; margin-bottom:10px;">키워드 설명</h3>
+                                <div id="edit-keyword-list"></div>
+                            </div>
+                        </div>
+                        <div class="slots-container">
+                            <div class="slot-section">
+                                <h4>기본 카드 (고정 / 6장)</h4>
+                                <div class="slots-row" id="slots-basic"></div>
+                            </div>
+                            <div class="slot-section">
+                                <h4>스탠바이 카드 (4장 복사 / 2칸)</h4>
+                                <div class="slots-row" id="slots-standby">
+                                    <div class="empty-slot card-image-placeholder" data-type="standby" data-index="0"><span style="font-size:24px; color:#30363d;">+</span></div>
+                                    <div class="empty-slot card-image-placeholder" data-type="standby" data-index="1"><span style="font-size:24px; color:#30363d;">+</span></div>
+                                </div>
+                            </div>
+                            <div class="slot-section">
+                                <h4>서브 스탠바이 카드 (1장 / 6칸)</h4>
+                                <div class="slots-row" id="slots-substandby">
+                                    <div class="empty-slot card-image-placeholder" data-type="substandby" data-index="0"><span style="font-size:24px; color:#30363d;">+</span></div>
+                                    <div class="empty-slot card-image-placeholder" data-type="substandby" data-index="1"><span style="font-size:24px; color:#30363d;">+</span></div>
+                                    <div class="empty-slot card-image-placeholder" data-type="substandby" data-index="2"><span style="font-size:24px; color:#30363d;">+</span></div>
+                                    <div class="empty-slot card-image-placeholder" data-type="substandby" data-index="3"><span style="font-size:24px; color:#30363d;">+</span></div>
+                                    <div class="empty-slot card-image-placeholder" data-type="substandby" data-index="4"><span style="font-size:24px; color:#30363d;">+</span></div>
+                                    <div class="empty-slot card-image-placeholder" data-type="substandby" data-index="5"><span style="font-size:24px; color:#30363d;">+</span></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="edit-right">
+                        <div class="filter-bar">
+                            <input type="text" id="edit-search" placeholder="카드 검색...">
+                            <button id="edit-sort-btn">코스트 순</button>
+                        </div>
+                        <div id="edit-card-pool" class="card-grid"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="game-screen" class="hidden">
+            <div id="enemy-area" class="player-zone">
+                <div class="stats-panel">
+                    <div class="panel-header"><span class="panel-title">상대방</span></div>
                     <div class="shield-container" id="enemy-shields"></div>
                     <div class="bar-container hp-bar-container">
                         <div id="enemy-hp-bar" class="bar hp-bar"></div>
                         <div id="enemy-hp-text" class="bar-text">70 / 70</div>
                     </div>
                 </div>
-            </div>
-        </div>
-
-        <div id="battle-field">
-            <div class="preview-area in-game-preview-area">
-                <div id="card-preview-box" class="preview-box">
-                    <p class="preview-placeholder">패의 카드를 클릭하면<br>자세히 볼 수 있습니다</p>
-                </div>
-                <div id="game-keywords" class="keyword-box hidden">
-                    <h3 style="color:#f39c12; margin-bottom:10px;">키워드 설명</h3>
-                    <div id="game-keyword-list"></div>
+                <div class="deck-grave-info enemy-info-box">
+                    <div class="info-btn disabled">덱 (<span id="enemy-deck-count">0</span>)</div>
+                    <div id="enemy-standby-btn" class="info-btn">스탠바이 (<span id="enemy-standby-count">0</span>)</div>
+                    <div id="enemy-grave-btn" class="info-btn">카드 무덤 (<span id="enemy-grave-count">0</span>)</div>
                 </div>
             </div>
 
-            <div id="drop-zone">
-                <span id="drop-zone-text">카드를 이곳에 사용하세요</span>
-                <div id="recent-card-view" class="hidden"></div>
+            <div id="battle-field">
+                <div id="drop-zone">
+                    <span id="drop-zone-text">카드를 이곳에 사용하세요</span>
+                </div>
+                <button id="end-turn-btn" class="hidden action-btn">차례 종료</button>
+                
+                <div class="preview-area in-game-preview-area">
+                    <div id="card-preview-box" class="preview-box"></div>
+                    <div id="game-keywords" class="keyword-box hidden">
+                        <h3 style="color:#A65E00; margin-bottom:10px;">키워드 설명</h3>
+                        <div id="game-keyword-list"></div>
+                    </div>
+                </div>
             </div>
-            <button id="end-turn-btn" class="hidden">차례 종료</button>
-        </div>
 
-        <div id="my-area" class="player-zone">
-            <div class="stats-panel my-stats-panel">
-                <div class="panel-header"><span class="panel-title">나의 스탯</span></div>
-                <div class="stat-bars">
+            <div id="my-area" class="player-zone">
+                <div class="stats-panel my-stats-panel">
+                    <div class="panel-header"><span class="panel-title">나의 상태</span></div>
                     <div class="shield-container" id="my-shields"></div>
                     <div class="bar-container hp-bar-container">
                         <div id="my-hp-bar" class="bar hp-bar"></div>
                         <div id="my-hp-text" class="bar-text">70 / 70</div>
                     </div>
-                    <div class="bar-container energy-bar-container">
+                    <div class="bar-container energy-bar-container" style="margin-top:10px;">
                         <div id="my-energy-bar" class="bar energy-bar"></div>
                         <div id="my-energy-text" class="bar-text">400 / 400</div>
                     </div>
                 </div>
-            </div>
-            
-            <div id="my-hand" class="hand-container"></div>
-
-            <div class="deck-grave-info my-info-box">
-                <div id="my-standby-btn" class="info-btn highlight-btn">스탠바이 카드 (<span id="my-standby-count">0</span>)</div>
-                <div style="display: flex; gap: 5px;">
-                    <div id="my-deck-btn" class="info-btn">덱 목록 (<span id="my-deck-count">0</span>)</div>
-                    <div id="my-grave-btn" class="info-btn">카드 무덤 (<span id="my-grave-count">0</span>)</div>
+                <div id="my-hand" class="hand-container"></div>
+                <div class="deck-grave-info my-info-box">
+                    <div id="my-standby-btn" class="info-btn highlight-btn">스탠바이 (<span id="my-standby-count">0</span>)</div>
+                    <div style="display: flex; gap: 8px;">
+                        <div id="my-deck-btn" class="info-btn">덱 목록 (<span id="my-deck-count">0</span>)</div>
+                        <div id="my-grave-btn" class="info-btn">무덤 (<span id="my-grave-count">0</span>)</div>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <div id="list-modal" class="modal hidden">
-        <div class="modal-wrapper">
-            <button id="modal-close" class="close-btn">X</button>
-            <div class="modal-left">
-                <div id="modal-preview" class="card-preview">
-                    <p style="color:#8b949e; margin-top:50px;">카드를 선택하세요</p>
+        <div id="list-modal" class="modal hidden">
+            <div class="modal-wrapper">
+                <button id="modal-close" class="close-btn">X</button>
+                <div class="modal-left">
+                    <div id="modal-preview" class="card-preview-box-modal"></div>
+                    <button id="modal-confirm-btn" class="action-btn hidden">선택 완료</button>
                 </div>
-                <button id="modal-confirm-btn" class="action-btn hidden">선택 완료</button>
-            </div>
-            <div class="modal-right">
-                <h2 id="modal-title" style="margin-bottom:15px; color:#58a6ff;">목록</h2>
-                <div id="modal-grid" class="card-grid"></div>
+                <div class="modal-right">
+                    <h2 id="modal-title">카드 목록</h2>
+                    <div id="modal-grid" class="card-grid"></div>
+                </div>
             </div>
         </div>
-    </div>
-
-    <script src="/socket.io/socket.io.js"></script>
-    <script src="game.js"></script>
+    </div> <script src="game.js"></script>
 </body>
 </html>

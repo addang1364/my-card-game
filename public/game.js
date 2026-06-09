@@ -1,3 +1,26 @@
+// 🌟 [최종 기획] 16:9 해상도 강제 고정 및 레터박스 스케일링 로직 🌟
+function resizeApp() {
+    const wrapper = document.getElementById('app-wrapper');
+    // 최적 해상도: 1920x1080
+    const targetRatio = 1920 / 1080;
+    const currentRatio = window.innerWidth / window.innerHeight;
+
+    let scale;
+    if (currentRatio > targetRatio) {
+        // 창이 더 넓을 때 -> 높이 기준 스케일링
+        scale = window.innerHeight / 1080;
+    } else {
+        // 창이 더 좁을 때 -> 너비 기준 스케일링
+        scale = window.innerWidth / 1920;
+    }
+
+    // 통째로 스케일링 및 가운데 정렬
+    wrapper.style.transform = `translate(-50%, -50%) scale(${scale})`;
+}
+window.addEventListener('resize', resizeApp);
+resizeApp(); // 초기 로딩 시 실행
+
+// Socket 설정
 const socket = io();
 
 let currentRoomId = null;
@@ -5,13 +28,12 @@ let myId = null;
 let localGameState = null;
 let bannerTimeout = null;
 
+// 모달 & 드롭다운 상태
 let modalMode = null; 
 let selectedDiscardIds = [];
 let pendingMagicCardId = null;
 
-let previousHandIds = [];
-
-// 사운드 이펙트 불러오기
+// 효과음 객체
 const sfxCardDraw = new Audio('audio/sfx/card-draw.ogg');
 sfxCardDraw.volume = 0.6; 
 
@@ -25,6 +47,7 @@ const KEYWORDS_DESC = {
     "체력지불": "자신은 이 수치만큼 체력을 잃는다. 보호막으로 경감이 되지 않는다."
 };
 
+// 카드 데이터베이스 (JS 렌더링용 프리뷰/덱 에디터 전용)
 const CARD_DB = [
     { name: "재빠른 일격", cost: 100, textTemplate: "10 피해를 준다.", type: "basic" },
     { name: "굳건한 수비", cost: 100, textTemplate: "9 보호막을 얻는다.", type: "basic" },
@@ -62,8 +85,10 @@ const CARD_DB = [
     { name: "쿠키 뺏어먹기", cost: 100, req: "enemyDrew", textTemplate: "전 턴에 상대가 카드의 효과로 드로우 했다면 이 카드를 사용할 수 있다. 카드를 2장 드로우 한다. 에너지를 150 회복한다.", type: "other" }
 ];
 
+// 클라이언트 덱 편집 상태
 let myDeckSetup = { standby: [null, null], subStandby: [null, null, null, null, null, null] };
 
+// DOM 요소
 const lobbyScreen = document.getElementById('lobby-screen');
 const gameScreen = document.getElementById('game-screen');
 const matchBtn = document.getElementById('match-btn');
@@ -71,17 +96,19 @@ const toastLayer = document.getElementById('toast-layer');
 const bannerLayer = document.getElementById('banner-layer');
 const bannerText = document.getElementById('banner-text');
 
+// 시스템 유틸
 function showToast(message) {
     const toast = document.createElement('div'); toast.className = 'toast-msg'; toast.innerText = message;
     toastLayer.appendChild(toast); setTimeout(() => toast.remove(), 3000);
 }
 
-function showBanner(text, duration = 1200) {
+function showBanner(text, duration = 1500) {
     if (bannerTimeout) { clearTimeout(bannerTimeout); bannerTimeout = null; }
     bannerText.innerText = text; bannerLayer.classList.remove('hidden');
     bannerTimeout = setTimeout(() => { bannerLayer.classList.add('hidden'); }, duration);
 }
 
+// 로비 탭 전환
 document.getElementById('tab-match').addEventListener('click', () => {
     document.getElementById('tab-match').classList.add('active'); document.getElementById('tab-deck').classList.remove('active');
     document.getElementById('lobby-match-view').classList.remove('hidden'); document.getElementById('lobby-deck-view').classList.add('hidden');
@@ -89,7 +116,7 @@ document.getElementById('tab-match').addEventListener('click', () => {
 document.getElementById('tab-deck').addEventListener('click', () => {
     document.getElementById('tab-deck').classList.add('active'); document.getElementById('tab-match').classList.remove('active');
     document.getElementById('lobby-deck-view').classList.remove('hidden'); document.getElementById('lobby-match-view').classList.add('hidden');
-    renderDeckEditor();
+    renderDeckEditor(); // 덱 에디터 로드
 });
 
 // 키워드 하이라이팅
@@ -102,15 +129,13 @@ function colorize(text) {
     return colored;
 }
 
-// 🌟 커스텀 테두리가 적용된 카드 HTML 구조 생성 함수 🌟
+// 🌟 [최종 기획] 커스텀 틀 & 유희왕 스타일 HTML 구조 생성 함수 🌟
 function createCardHTML(card) {
-    // 테두리 아래에 깔릴 기본 배경색을 위한 클래스 (CSS에서 색상 지정)
     const typeClass = card.type === 'basic' ? 'basic-type' : 'standby-type';
-    
-    // 기획자님의 배치 규칙에 맞춘 HTML 구조
+    // 에너지 비용 형식을 '숫자 전용'으로 변경
     return `
         <div class="card-frame ${typeClass}" data-instance-id="${card.instanceId}">
-            <div class="card-cost-badge">(에너지 비용 : ${card.cost})</div>
+            <div class="card-cost-badge">${card.cost}</div>
             <div class="card-name-label">${card.name}</div>
             <div class="card-effect-text">${colorize(card.textTemplate)}</div>
             <div class="card-image-area"></div>
@@ -118,13 +143,13 @@ function createCardHTML(card) {
     `;
 }
 
+// 프리뷰 박스 업데이트 (공통)
 function showPreviewWithKeywords(card, previewBoxId, keywordBoxId, keywordListId) {
     const pBox = document.getElementById(previewBoxId);
     const kBox = document.getElementById(keywordBoxId);
     const kList = document.getElementById(keywordListId);
 
-    // 프리뷰 박스에도 커스텀 카드 틀 적용
-    pBox.innerHTML = createCardHTML({...card, transform: 'none', margin: 0, cursor: 'default'});
+    pBox.innerHTML = createCardHTML({...card});
 
     let foundKeys = Object.keys(KEYWORDS_DESC).filter(k => (card.name + card.textTemplate).includes(k));
     if(foundKeys.length > 0) {
@@ -137,106 +162,144 @@ function showPreviewWithKeywords(card, previewBoxId, keywordBoxId, keywordListId
 
 // 덱 에디터 렌더링
 function renderDeckEditor(searchText = "", sortByCost = false) {
+    // 1. 기본 카드 슬롯 (렌더링만)
     const basicSlots = document.getElementById('slots-basic');
     basicSlots.innerHTML = "";
     CARD_DB.filter(c => c.type === 'basic').forEach(c => {
-        // 슬롯의 카드는 미니 버전 HTML 구조 생성
         const el = document.createElement('div'); el.className = 'slot-card basic-type'; 
-        el.innerHTML = `<div class="slot-card-name">${c.name}</div><div class="slot-card-cost">(${c.cost})</div>`;
+        el.innerHTML = `<div class="slot-card-name">${c.name}</div><div class="slot-card-cost">${c.cost}</div>`;
         el.addEventListener('mouseenter', () => showPreviewWithKeywords(c, 'edit-preview', 'edit-keywords', 'edit-keyword-list'));
         basicSlots.appendChild(el);
     });
 
+    // 2. 스탠바이/서브 스탠바이 슬롯 (드롭다운 & 제거)
     function renderSlotArray(arr, containerId, type) {
-        const container = document.getElementById(containerId); container.innerHTML = "";
-        arr.forEach((cardName, idx) => {
-            if(cardName) {
+        const container = document.getElementById(containerId);
+        // 컨테이너 내의 .empty-slot 요소만 초기화
+        const slots = container.querySelectorAll('.empty-slot');
+        slots.forEach((el, idx) => {
+            const cardName = arr[idx];
+            // 슬롯 초기화 (dataset 정보 유지)
+            el.innerHTML = '<span style="font-size:24px; color:#30363d;">+</span>';
+            el.className = 'empty-slot card-image-placeholder';
+            el.removeAttribute('mouseenter');
+            
+            if (cardName) {
                 const c = CARD_DB.find(x => x.name === cardName);
-                const el = document.createElement('div'); el.className = 'slot-card standby-type';
-                el.innerHTML = `<div class="slot-card-name">${c.name}</div><div class="slot-card-cost">(${c.cost})</div>`;
-                el.addEventListener('mouseenter', () => showPreviewWithKeywords(c, 'edit-preview', 'edit-keywords', 'edit-keyword-list'));
-                el.addEventListener('contextmenu', (e) => { e.preventDefault(); arr[idx] = null; renderDeckEditor(); });
-                container.appendChild(el);
+                const typeClass = type === 'standby' ? 'standby-type' : 'basic-type'; // 실제로는 다 other지만 틀 색상 구분용
+                el.className = `empty-slot slot-card ${typeClass}`;
+                el.innerHTML = `<div class="slot-card-name">${c.name}</div><div class="slot-card-cost">${c.cost}</div>`;
+                
+                // 프리뷰 & 제거 이벤트
+                el.onmouseenter = () => showPreviewWithKeywords(c, 'edit-preview', 'edit-keywords', 'edit-keyword-list');
+                el.oncontextmenu = (e) => { e.preventDefault(); arr[idx] = null; renderDeckEditor(); };
             } else {
-                // 빈 슬롯은 가운데 이미지가 들어갈 공간임을 대각선 줄무늬 등으로 표시합니다 (style.css에서 처리)
-                const el = document.createElement('div'); el.className = 'empty-slot card-image-placeholder'; el.dataset.type = type; el.dataset.index = idx;
-                el.innerHTML = '<span style="font-size:24px; color:#30363d;">+</span>';
-                el.addEventListener('dragover', e => { e.preventDefault(); el.classList.add('hover'); });
-                el.addEventListener('dragleave', () => el.classList.remove('hover'));
-                el.addEventListener('drop', e => {
+                // 빈 슬롯 드래그 이벤트 (최초 1회만 설정되도록 on속성 사용)
+                el.ondragover = (e) => { e.preventDefault(); el.classList.add('hover'); };
+                el.ondragleave = () => el.classList.remove('hover');
+                el.ondrop = (e) => {
                     e.preventDefault(); el.classList.remove('hover');
                     const name = e.dataTransfer.getData('text/plain');
-                    if(CARD_DB.find(x => x.name === name).type === 'basic') return showToast("기본 카드는 넣을 수 없습니다.");
-                    if(myDeckSetup.standby.includes(name) || myDeckSetup.subStandby.includes(name)) return showToast("스탠바이 전체를 통틀어 중복 카드는 넣을 수 없습니다.");
+                    const c = CARD_DB.find(x => x.name === name);
+                    if (!c || c.type === 'basic') return showToast("기본 카드는 넣을 수 없습니다.");
+                    if (myDeckSetup.standby.includes(name) || myDeckSetup.subStandby.includes(name)) return showToast("이미 덱에 존재하는 카드입니다.");
                     arr[idx] = name; renderDeckEditor();
-                });
-                container.appendChild(el);
+                };
             }
         });
     }
     renderSlotArray(myDeckSetup.standby, 'slots-standby', 'standby');
     renderSlotArray(myDeckSetup.subStandby, 'slots-substandby', 'substandby');
 
+    // 3. 카드 풀 (검색 & 정렬)
     let pool = CARD_DB.filter(c => c.type === 'other');
     if(searchText) pool = pool.filter(c => c.name.includes(searchText) || c.textTemplate.includes(searchText));
     if(sortByCost) pool.sort((a,b) => a.cost - b.cost);
 
-    const poolContainer = document.getElementById('edit-card-pool');
-    poolContainer.innerHTML = "";
+    const poolContainer = document.getElementById('edit-card-pool'); poolContainer.innerHTML = "";
     pool.forEach(c => {
-        // 풀의 카드도 커스텀 틀 적용 HTML 구조 생성
-        const cardContainer = document.createElement('div'); cardContainer.className = 'grid-card-container'; cardContainer.draggable = true;
-        cardContainer.addEventListener('mouseenter', () => showPreviewWithKeywords(c, 'edit-preview', 'edit-keywords', 'edit-keyword-list'));
-        cardContainer.addEventListener('dragstart', e => e.dataTransfer.setData('text/plain', c.name));
+        const typeClass = 'standby-type'; // Other 카드 기본 틀 색상
+        const cardEl = document.createElement('div');
+        cardEl.className = `grid-card card-frame ${typeClass}`;
+        cardEl.draggable = true;
         
-        // 커스텀 테두리를 씌운 카드 HTML을 얹습니다
-        const typeClass = c.type === 'basic' ? 'basic-type' : 'standby-type';
-        cardContainer.innerHTML = `
-            <div class="grid-card card-frame ${typeClass}">
-                <div class="card-cost-badge">(에너지 비용 : ${c.cost})</div>
-                <div class="card-name-label">${c.name}</div>
-                <div class="card-effect-text">${colorize(c.textTemplate)}</div>
-                <div class="card-image-area"></div>
-            </div>
+        cardEl.innerHTML = `
+            <div class="card-cost-badge">${c.cost}</div>
+            <div class="card-name-label">${c.name}</div>
+            <div class="card-effect-text">${colorize(c.textTemplate)}</div>
+            <div class="card-image-area"></div>
         `;
-        poolContainer.appendChild(cardContainer);
+        
+        cardEl.addEventListener('mouseenter', () => showPreviewWithKeywords(c, 'edit-preview', 'edit-keywords', 'edit-keyword-list'));
+        cardEl.addEventListener('dragstart', (e) => { e.dataTransfer.setData('text/plain', c.name); cardEl.classList.add('selected'); });
+        cardEl.addEventListener('dragend', () => cardEl.classList.remove('selected'));
+        poolContainer.appendChild(cardEl);
     });
 }
 
+// 덱 에디터 이벤트
 document.getElementById('edit-search').addEventListener('input', e => renderDeckEditor(e.target.value, false));
-document.getElementById('edit-sort-btn').addEventListener('click', () => renderDeckEditor(document.getElementById('edit-search').value, true));
+document.getElementById('edit-sort-btn').addEventListener('click', () => {
+    const btn = document.getElementById('edit-sort-btn');
+    const isSorted = btn.classList.toggle('active');
+    renderDeckEditor(document.getElementById('edit-search').value, isSorted);
+});
 
+// 매칭 신청
 matchBtn.addEventListener('click', () => {
+    // 덱 완성 검사
     if(myDeckSetup.standby.includes(null) || myDeckSetup.subStandby.includes(null)) {
-        showToast("덱을 먼저 완성해 주세요! (빈 슬롯이 있습니다)"); return;
+        showToast("덱을 완성해 주세요!"); return;
     }
+    // 완성된 덱 정보 전달
     socket.emit('findMatch', { standby: myDeckSetup.standby, subStandby: myDeckSetup.subStandby });
 });
 
+// --- Socket Events (In-game) ---
+
 socket.on('matching', () => { document.getElementById('status-text').innerText = "매칭 중..."; matchBtn.disabled = true; });
+
 socket.on('gameStart', ({ roomId, gameState }) => {
     currentRoomId = roomId; myId = socket.id;
     previousHandIds = []; 
     lobbyScreen.classList.add('hidden'); gameScreen.classList.remove('hidden');
+    // 배너 끄기
+    bannerLayer.classList.add('hidden');
     updateUI(gameState);
 });
-socket.on('updateState', ({ gameState }) => { updateUI(gameState); });
+
+// 🌟 [최종 수정] 서버가 보낸 updateState를 클라이언트가 받고 UI를 갱신합니다. 🌟
+socket.on('updateState', ({ gameState }) => { 
+    updateUI(gameState); 
+});
+
 socket.on('errorMessage', ({ message }) => { showToast(message); });
 socket.on('phaseBanner', ({ type }) => {
     if (!localGameState) return;
-    const texts = { 'TURN_CHANGE': "Turn Change!!", 'MAIN_PHASE': localGameState.turn === myId ? "카드를 사용하세요!!" : "상대방이 카드를 사용 중입니다", 'TURN_OVER': "Turn Over" };
-    if (texts[type]) showBanner(texts[type]);
+    // processing 등 intermediate phase 무시
+    if (type === 'TURN_OVER') { showBanner("Turn Over"); }
+    if (type === 'TURN_CHANGE') { 
+        showBanner("Turn Change!!"); 
+    }
 });
+
 socket.on('gameOver', ({ winner, disconnect }) => {
+    // 마지막 상태 업데이트 (HP 등)
+    if(localGameState) updateUI(localGameState);
+    
+    // 약간 대기 후 결과 표시
     setTimeout(() => {
-        if (disconnect) showBanner("상대방 연결 끊김! 승리!", 4000);
+        if (disconnect) showBanner("상대 끊김! 승리!", 4000);
         else if (winner === myId) showBanner("승 리 !!", 4000);
         else showBanner("패 배 ..", 4000);
-        setTimeout(() => location.reload(), 4000);
+        
+        setTimeout(() => location.reload(), 4100);
     }, 500);
 });
 
+// 패의 카드 사용 가능 여부 판별
 function isPlayable(card, me) {
+    if (localGameState.turn !== myId || localGameState.phase !== "main") return false;
     if(me.energy < card.cost) return false;
     if(card.hpCost && me.hp <= card.hpCost) return false;
     if(card.discardCost && me.hand.length - 1 < card.discardCost) return false;
@@ -249,149 +312,163 @@ function isPlayable(card, me) {
     return true;
 }
 
+// 🌟 [최종 수정] 인게임 UI 핵심 갱신 함수 🌟
 function updateUI(gameState) {
     localGameState = gameState;
     const enemyId = gameState.playerIds.find(id => id !== myId);
     const me = gameState.players[myId]; const enemy = gameState.players[enemyId];
 
+    // 스탯 (나)
     document.getElementById('my-hp-text').innerText = `${me.hp} / 70`;
     document.getElementById('my-hp-bar').style.width = `${(me.hp / 70) * 100}%`;
     document.getElementById('my-energy-text').innerText = `${me.energy} / 400`;
     document.getElementById('my-energy-bar').style.width = `${(me.energy / 400) * 100}%`;
+    document.getElementById('my-shields').innerHTML = me.shield > 0 ? `<div class="shield-badge">${me.shield}</div>` : '';
 
+    // 스탯 (상대)
     document.getElementById('enemy-hp-text').innerText = `${enemy.hp} / 70`;
     document.getElementById('enemy-hp-bar').style.width = `${(enemy.hp / 70) * 100}%`;
+    document.getElementById('enemy-shields').innerHTML = enemy.shield > 0 ? `<div class="shield-badge">${enemy.shield}</div>` : '';
 
-    document.getElementById('my-deck-count').innerText = me.deck.length; document.getElementById('my-standby-count').innerText = me.standbyDeck.length;
+    // 덱/무덤 카운트
+    document.getElementById('my-deck-count').innerText = me.deck.length; 
+    document.getElementById('my-standby-count').innerText = me.standbyDeck.length;
     document.getElementById('my-grave-count').innerText = me.graveyard.length;
-    document.getElementById('enemy-deck-count').innerText = enemy.deck.length; document.getElementById('enemy-standby-count').innerText = enemy.standbyDeck.length;
+    document.getElementById('enemy-deck-count').innerText = enemy.deck.length; 
+    document.getElementById('enemy-standby-count').innerText = enemy.standbyDeck.length;
     document.getElementById('enemy-grave-count').innerText = enemy.graveyard.length;
 
+    // 내 스탠바이 버튼 활성화 조건
     const standbyBtn = document.getElementById('my-standby-btn');
     if (me.pulledStandbyThisTurn || localGameState.turn !== myId || localGameState.phase !== "main") standbyBtn.classList.add('disabled');
     else standbyBtn.classList.remove('disabled');
 
-    document.getElementById('my-shields').innerHTML = me.shield > 0 ? `<div class="shield-badge">${me.shield}</div>` : '';
-    document.getElementById('enemy-shields').innerHTML = enemy.shield > 0 ? `<div class="shield-badge">${enemy.shield}</div>` : '';
-
+    // 드롭존 & 차례종료 버튼
     const dropZoneText = document.getElementById('drop-zone-text');
     const endTurnBtn = document.getElementById('end-turn-btn');
 
     if (localGameState.turn === myId) {
+        endTurnBtn.classList.add('info-btn'); // 베이직 스타일 보장
         if (localGameState.phase === "main") {
-            endTurnBtn.classList.remove('hidden'); dropZoneText.innerHTML = "카드를 이곳에 사용하세요";
+            endTurnBtn.classList.remove('hidden'); endTurnBtn.innerText = "차례 종료";
+            dropZoneText.innerHTML = "카드를 이곳에 사용하세요";
         } else if (localGameState.phase === "discard") {
-            endTurnBtn.classList.add('hidden');
+            endTurnBtn.classList.add('hidden'); // 버리기 페이즈엔 숨김
             let overflow = me.hand.length - 5;
-            dropZoneText.innerHTML = `<span style="color:#f85149; font-weight:bold;">패가 초과되었습니다!<br>${overflow}장을 이곳에 버려주세요.</span>`;
+            dropZoneText.innerHTML = `<span style="color:#f85149; font-weight:bold;">패 초과! ${overflow}장을 버리세요.<br>(무덤으로 드래그)</span>`;
         } else {
             endTurnBtn.classList.add('hidden'); dropZoneText.innerHTML = "처리 중...";
         }
-    } else { endTurnBtn.classList.add('hidden'); dropZoneText.innerHTML = "상대방 차례입니다"; }
+    } else { 
+        endTurnBtn.classList.add('hidden'); 
+        dropZoneText.innerHTML = "상대방의 차례입니다"; 
+    }
 
+    // 🌟 [최종 수정] 나의 패 렌더링 (순차 드로우 적용) 🌟
     const myHand = document.getElementById('my-hand');
     myHand.innerHTML = "";
-    
-    // 순차적 딜레이를 주기 위한 카운터 변수
     let newCardCounter = 0;
 
     me.hand.forEach((card, index) => {
-        constplayable = isPlayable(card, me);
+        const playable = isPlayable(card, me);
         const cardEl = document.createElement('div');
-        
         const isNewCard = !previousHandIds.includes(card.instanceId);
         
         if (isNewCard) {
-            // 🌟 새 카드일 경우: 순서에 따라 0.4초씩 딜레이(시차)를 더해줍니다.
+            // 새 카드: 딜레이 계산
             const delaySec = newCardCounter * 0.4;
-            
-            // 🌟 커스텀 테두리가 적용된 카드 HTML을 생성합니다 🌟
             const typeClass = card.type === 'basic' ? 'basic-type' : 'standby-type';
             cardEl.className = `card-frame ${typeClass} ${playable ? 'card-playable' : 'card-unplayable'} card-just-drawn`;
-            cardEl.style.animationDelay = `${delaySec}s`; // CSS 애니메이션 출발 지연
-            cardEl.style.zIndex = index; cardEl.draggable = playable; cardEl.dataset.instanceId = card.instanceId;
+            cardEl.style.animationDelay = `${delaySec}s`; 
             
-            cardEl.innerHTML = `
-                <div class="card-cost-badge">(에너지 비용 : ${card.cost})</div>
-                <div class="card-name-label">${card.name}</div>
-                <div class="card-effect-text">${colorize(card.textTemplate)}</div>
-                <div class="card-image-area"></div>
-            `;
-            
-            // 🌟 딜레이된 시간에 맞춰 정확히 소리 재생!
+            // 효과음
             setTimeout(() => {
-                const snd = sfxCardDraw.cloneNode();
-                snd.volume = 0.6;
+                const snd = sfxCardDraw.cloneNode(); snd.volume = 0.6;
                 snd.play().catch(e => console.log("자동재생 방지:", e));
             }, delaySec * 1000);
 
-            // 🌟 애니메이션이 모두 끝나면 클래스를 제거하여 원래 상태로 복구
-            setTimeout(() => {
-                if (cardEl) {
-                    cardEl.classList.remove('card-just-drawn');
-                    cardEl.style.animationDelay = '0s'; // 초기화
-                }
-            }, (delaySec * 1000) + 400);
-
+            // 애니메이션 끝나면 클래스 제거
+            setTimeout(() => { if (cardEl) cardEl.classList.remove('card-just-drawn'); }, (delaySec * 1000) + 500);
             newCardCounter++;
         } else {
-            // 기존에 있던 카드는 딜레이나 효과음 없이 그대로 렌더링
+            // 기존 카드
             const typeClass = card.type === 'basic' ? 'basic-type' : 'standby-type';
             cardEl.className = `card-frame ${typeClass} ${playable ? 'card-playable' : 'card-unplayable'}`;
-            cardEl.style.zIndex = index; cardEl.draggable = playable; cardEl.dataset.instanceId = card.instanceId;
-            
-            cardEl.innerHTML = `
-                <div class="card-cost-badge">(에너지 비용 : ${card.cost})</div>
-                <div class="card-name-label">${card.name}</div>
-                <div class="card-effect-text">${colorize(card.textTemplate)}</div>
-                <div class="card-image-area"></div>
-            `;
         }
 
-        // 클릭 및 드래그 이벤트 연결
+        // 공통 속성
+        cardEl.style.zIndex = index; cardEl.draggable = playable; 
+        cardEl.innerHTML = createCardHTML(card);
+        
+        // 인게임 프리뷰
         cardEl.addEventListener('click', () => showPreviewWithKeywords(card, 'card-preview-box', 'game-keywords', 'game-keyword-list'));
+        
+        // 드래그 시작
         cardEl.addEventListener('dragstart', (e) => {
-            if(!playable) e.preventDefault();
-            else e.dataTransfer.setData('text/plain', card.instanceId);
+            if(!playable && localGameState.phase !== "discard") { e.preventDefault(); return; }
+            e.dataTransfer.setData('text/plain', card.instanceId);
+            cardEl.classList.add('hover');
         });
+        cardEl.addEventListener('dragend', () => cardEl.classList.remove('hover'));
+        
         myHand.appendChild(cardEl);
     });
     
+    // 현재 패 ID 저장
     previousHandIds = me.hand.map(c => c.instanceId);
 }
 
+// --- Interaction ---
+
+// 드롭존 (카드 사용 / 버리기)
 const dropZone = document.getElementById('drop-zone');
 dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('hover'); });
 dropZone.addEventListener('dragleave', () => dropZone.classList.remove('hover'));
 dropZone.addEventListener('drop', e => {
     e.preventDefault(); dropZone.classList.remove('hover');
-    if (!localGameState) return;
+    if (!localGameState || !currentRoomId) return;
     
     const instanceId = parseInt(e.dataTransfer.getData('text/plain'));
     const me = localGameState.players[myId];
     
     if (localGameState.turn === myId) {
         if (localGameState.phase === "discard") {
+            // 패 버리기 기능
             socket.emit('discardCard', { roomId: currentRoomId, instanceId });
         } else if (localGameState.phase === "main") {
+            // 카드 사용 기능
             const card = me.hand.find(c => c.instanceId === instanceId);
-            if(card && card.discardCost) {
-                pendingMagicCardId = instanceId;
-                openModal(`버릴 카드 ${card.discardCost}장을 선택하세요`, me.hand.filter(c => c.instanceId !== instanceId), false, 'magicSelect', card.discardCost);
+            if(card && isPlayable(card, me)) {
+                if(card.discardCost) {
+                    // 마법 카드 조건: 패 선택 모달 열기
+                    pendingMagicCardId = instanceId;
+                    openModal(`버릴 카드 ${card.discardCost}장을 선택하세요`, me.hand.filter(c => c.instanceId !== instanceId), false, 'magicSelect', card.discardCost);
+                } else {
+                    socket.emit('playCard', { roomId: currentRoomId, instanceId });
+                }
             } else {
-                socket.emit('playCard', { roomId: currentRoomId, instanceId });
+                showToast("사용할 수 없습니다.");
             }
         }
     }
 });
 
+// 차례 종료 버튼
 document.getElementById('end-turn-btn').addEventListener('click', () => {
     if (localGameState && localGameState.turn === myId && localGameState.phase === "main") {
         socket.emit('endTurn', { roomId: currentRoomId });
-        document.getElementById('end-turn-btn').classList.add('hidden');
+        document.getElementById('end-turn-btn').classList.add('hidden'); // 클릭 즉시 숨김
     }
 });
 
+// 나의 스탠바이 버튼 클릭 (패로 가져오기)
+document.getElementById('my-standby-btn').addEventListener('click', () => {
+    const me = localGameState.players[myId];
+    if(me.pulledStandbyThisTurn || localGameState.turn !== myId || localGameState.phase !== "main") return;
+    openModal('스탠바이 풀 (1장 가져오기)', me.standbyDeck, false, 'standby');
+});
+
+// 모달 시스템
 const modal = document.getElementById('list-modal');
 const modalGrid = document.getElementById('modal-grid');
 const modalPreview = document.getElementById('modal-preview');
@@ -401,22 +478,24 @@ let requiredDiscardCount = 0;
 function openModal(title, cardArray, shuffle = false, mode = 'view', reqCount = 0) {
     modalMode = mode; selectedDiscardIds = []; requiredDiscardCount = reqCount;
     document.getElementById('modal-title').innerText = title;
-    modalGrid.innerHTML = ""; modalPreview.innerHTML = "<p style='color:#8b949e; margin-top:50px;'>카드를 선택하세요</p>";
+    modalGrid.innerHTML = ""; modalPreview.innerHTML = "<p style='color:#8b949e; margin-top:100px; text-align:center;'>카드를<br>선택하세요</p>";
     
     if(mode === 'magicSelect') { confirmBtn.classList.remove('hidden'); confirmBtn.innerText = `${reqCount}장 선택 완료`; confirmBtn.disabled = true; }
     else if(mode === 'standby') { confirmBtn.classList.remove('hidden'); confirmBtn.innerText = "패로 가져오기"; confirmBtn.disabled = true; }
     else { confirmBtn.classList.add('hidden'); }
 
+    // 배열 복사 및 셔플(필요시)
     let displayArray = [...cardArray]; if (shuffle) displayArray.sort(() => Math.random() - 0.5);
 
     displayArray.forEach(card => {
-        const cardContainer = document.createElement('div'); cardContainer.className = 'grid-card-container';
+        const cardContainer = document.createElement('div');
+        cardContainer.className = 'grid-card-container';
         
-        // 🌟 모달 내 카드도 커스텀 틀 적용 HTML 구조 생성 🌟
         const typeClass = card.type === 'basic' ? 'basic-type' : 'standby-type';
+        // 모달 내부는 미니 카드 스타일
         cardContainer.innerHTML = `
             <div class="grid-card card-frame ${typeClass}">
-                <div class="card-cost-badge">(에너지 비용 : ${card.cost})</div>
+                <div class="card-cost-badge">${card.cost}</div>
                 <div class="card-name-label">${card.name}</div>
                 <div class="card-effect-text">${colorize(card.textTemplate)}</div>
                 <div class="card-image-area"></div>
@@ -424,11 +503,12 @@ function openModal(title, cardArray, shuffle = false, mode = 'view', reqCount = 
         `;
 
         cardContainer.addEventListener('click', () => {
-            // 프리뷰 박스에도 커스텀 카드 틀 적용
-            modalPreview.innerHTML = createCardHTML({...card, transform: 'none', margin: 'auto', cursor: 'default'});
+            // 모달 프리뷰 (원본 크기 HTML)
+            modalPreview.innerHTML = createCardHTML({...card});
 
+            const el = cardContainer.querySelector('.grid-card');
+            
             if(mode === 'magicSelect') {
-                const el = cardContainer.querySelector('.grid-card');
                 if (el.classList.contains('selected')) {
                     el.classList.remove('selected'); selectedDiscardIds = selectedDiscardIds.filter(id => id !== card.instanceId);
                 } else if (selectedDiscardIds.length < requiredDiscardCount) {
@@ -437,8 +517,9 @@ function openModal(title, cardArray, shuffle = false, mode = 'view', reqCount = 
                 confirmBtn.disabled = (selectedDiscardIds.length !== requiredDiscardCount);
             } 
             else if(mode === 'standby') {
-                document.querySelectorAll('.grid-card').forEach(c => c.classList.remove('selected'));
-                cardContainer.querySelector('.grid-card').classList.add('selected'); selectedDiscardIds = [card.instanceId]; confirmBtn.disabled = false;
+                // 단일 선택
+                modalGrid.querySelectorAll('.grid-card').forEach(c => c.classList.remove('selected'));
+                el.classList.add('selected'); selectedDiscardIds = [card.instanceId]; confirmBtn.disabled = false;
             }
         });
         modalGrid.appendChild(cardContainer);
@@ -447,6 +528,7 @@ function openModal(title, cardArray, shuffle = false, mode = 'view', reqCount = 
 }
 
 confirmBtn.addEventListener('click', () => {
+    if(!currentRoomId) return;
     if(modalMode === 'magicSelect' && selectedDiscardIds.length === requiredDiscardCount) {
         socket.emit('playCard', { roomId: currentRoomId, instanceId: pendingMagicCardId, discardTargetIds: selectedDiscardIds });
         modal.classList.add('hidden');
@@ -457,12 +539,19 @@ confirmBtn.addEventListener('click', () => {
     }
 });
 
-document.getElementById('my-deck-btn').addEventListener('click', () => openModal('나의 기본 덱 목록 (무작위)', localGameState.players[myId].deck, true, 'view'));
-document.getElementById('my-grave-btn').addEventListener('click', () => openModal('나의 카드 무덤', localGameState.players[myId].graveyard, false, 'view'));
-document.getElementById('enemy-grave-btn').addEventListener('click', () => openModal('상대 카드 무덤', localGameState.players[localGameState.playerIds.find(id=>id!==myId)].graveyard, false, 'view'));
-document.getElementById('enemy-standby-btn').addEventListener('click', () => openModal('상대 스탠바이 목록', localGameState.players[localGameState.playerIds.find(id=>id!==myId)].standbyDeck, false, 'view'));
-document.getElementById('my-standby-btn').addEventListener('click', () => {
-    if(document.getElementById('my-standby-btn').classList.contains('disabled')) return;
-    openModal('스탠바이 풀 (1장 가져오기)', localGameState.players[myId].standbyDeck, false, 'standby');
-});
+// 모달 닫기 버튼
 document.getElementById('modal-close').addEventListener('click', () => modal.classList.add('hidden'));
+
+// 인게임 목록 버튼 이벤트
+document.getElementById('my-deck-btn').addEventListener('click', () => {
+    if(!localGameState) return; openModal('나의 기본 덱 (랜덤 순서)', localGameState.players[myId].deck, true, 'view');
+});
+document.getElementById('my-grave-btn').addEventListener('click', () => {
+    if(!localGameState) return; openModal('나의 카드 무덤', localGameState.players[myId].graveyard, false, 'view');
+});
+document.getElementById('enemy-grave-btn').addEventListener('click', () => {
+    if(!localGameState) return; openModal('상대 카드 무덤', localGameState.players[enemyId].graveyard, false, 'view');
+});
+document.getElementById('enemy-standby-btn').addEventListener('click', () => {
+    if(!localGameState) return; openModal('상대 스탠바이 풀', localGameState.players[enemyId].standbyDeck, false, 'view');
+});
